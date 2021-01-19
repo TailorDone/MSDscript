@@ -33,7 +33,7 @@
 *out
 *.idea
 *.iml
-/MSDscript
+/MSDscript/MSDscript/MSDscript
 
 ## Gcc Patch
 **/*.gcno
