@@ -1,6 +1,6 @@
-INCS = cmdline.hpp
+INCS = cmdline.hpp expr.hpp
 
-OBJS = main.o cmdline.o
+OBJS = main.o cmdline.o expr.o
 
 CXX = c++
 
@@ -14,3 +14,6 @@ main.o: main.cpp $(INCS)
 
 cmdline.o: cmdline.cpp $(INCS)
 	$(CXX) $(CXXFLAGS) -c cmdline.cpp
+
+expr.o: expr.cpp $(INCS)
+	$(CXX) $(CXXFLAGS) -c expr.cpp

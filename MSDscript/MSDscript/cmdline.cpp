@@ -5,7 +5,9 @@
 //  Created by Taylor Dunn on 1/19/21.
 //
 
+#define CATCH_CONFIG_RUNNER
 #include "cmdline.hpp"
+#include "catch.h"
 
 
 void use_arguments(int argc, char *argv[]){
@@ -22,7 +24,10 @@ void use_arguments(int argc, char *argv[]){
             exit(0);
         } else if (arg == "--test"){
             if(testSeen == false){
-                std::cout<<"Tests passed\n";
+                Catch::Session().run(1,argv);
+                if (Catch::Session().run(1,argv) != 0){
+                    exit(1);
+                }
                 testSeen = true;
             } else {
                 std::cerr << "Tests already seen\n";
