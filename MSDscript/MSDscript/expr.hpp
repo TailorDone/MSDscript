@@ -29,7 +29,7 @@ public:
     Expr *lhs;
     Expr *rhs;
     
-    Add(Expr *lsh, Expr *rhs);
+    Add(Expr *lhs, Expr *rhs);
     bool equals(Expr *other);
 };
 

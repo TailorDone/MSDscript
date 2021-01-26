@@ -21,8 +21,8 @@ bool Num::equals(Expr *other){
     }
 }
 
-Add::Add(Expr *lsh, Expr *rhs){
-    this->lhs = lsh;
+Add::Add(Expr *lhs, Expr *rhs){
+    this->lhs = lhs;
     this->rhs = rhs;
 }
 
@@ -111,4 +111,12 @@ TEST_CASE( "variable equals" ){
     CHECK((new Mult(new Variable("*"),new Num(1)))->equals(new Mult(new Variable("*"),new Num(1))) == true);
     CHECK((new Mult(one, num1))->equals(new Mult(one, num1)) == true);
     CHECK((new Mult(num1, one))->equals(new Mult(one, num1)) == false);
+}
+
+TEST_CASE ( "Object Comparisions" ){
+    CHECK((new Mult(new Num(0),new Num(1)))->equals(new Add(new Num(1),new Num(0))) == false);
+    CHECK((new Variable("*"))->equals(new Num(5)) == false);
+    CHECK((new Add(new Num(0),new Num(1)))->equals(new Variable("%")) == false);
+    CHECK((new Mult(new Num(0),new Num(1)))->equals(new Num(7)) == false);
+    CHECK((new Variable("*"))->equals(new Mult(new Num(0),new Num(1))) == false);
 }
