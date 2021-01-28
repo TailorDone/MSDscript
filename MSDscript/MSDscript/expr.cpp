@@ -9,6 +9,8 @@
 #include "catch.h"
 #include <stdexcept>
 
+/* *********************************************** */
+
 Num::Num(int val){
     this->val = val;
 }
@@ -34,6 +36,8 @@ Expr* Num::subst(std::string string, Expr *a){
     return this;
 }
 
+/* *********************************************** */
+
 Add::Add(Expr *lhs, Expr *rhs){
     this->lhs = lhs;
     this->rhs = rhs;
@@ -56,11 +60,14 @@ bool Add::has_variable(){
     return (this->lhs->has_variable() || this->rhs->has_variable());
 }
 
-Expr* Add::subst(std::string string, Expr *a){
-    this->lhs = lhs->subst(string, a);
-    this->rhs = rhs->subst(string, a);
-    return this;
+Expr* Add::subst(std::string name, Expr *replacement){
+    Expr *new_lhs = lhs->subst(name, replacement);
+    Expr *new_rhs = rhs->subst(name, replacement);
+    return new Add(new_lhs, new_rhs);
+ 
 }
+
+/* *********************************************** */
 
 Mult::Mult(Expr *lhs, Expr *rhs){
     this->lhs = lhs;
@@ -84,11 +91,13 @@ bool Mult::has_variable(){
     return (this->lhs->has_variable() || this->rhs->has_variable());
 }
 
-Expr* Mult::subst(std::string string, Expr *a){
-    this->lhs = lhs->subst(string, a);
-    this->rhs = rhs->subst(string, a);
-    return this;
+Expr* Mult::subst(std::string name, Expr *replacement){
+    Expr *new_lhs = lhs->subst(name, replacement);
+    Expr *new_rhs = rhs->subst(name, replacement);
+    return new Mult(new_lhs, new_rhs);
 }
+
+/* *********************************************** */
 
 Variable::Variable(std::string val){
     this->val = val;
@@ -118,6 +127,8 @@ Expr* Variable::subst(std::string string, Expr *a){
         return this;
     }
 }
+
+/* *********************************************** */
 
 TEST_CASE( "num equals" ){
     CHECK((new Num(0))->equals(new Num(0))==true);
