@@ -24,7 +24,6 @@ void use_arguments(int argc, char *argv[]){
             exit(0);
         } else if (arg == "--test"){
             if(testSeen == false){
-                Catch::Session().run(1,argv);
                 if (Catch::Session().run(1,argv) != 0){
                     exit(1);
                 }

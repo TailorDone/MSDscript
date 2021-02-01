@@ -32,8 +32,20 @@ bool Num::has_variable(){
     return false;
 }
 
-Expr* Num::subst(std::string string, Expr *a){
+Expr* Num::subst(std::string name, Expr *replacement){
     return this;
+}
+
+void Num::print(std::ostream& output){
+    output << this->val;
+}
+
+void Num::pretty_print(std::ostream& output){
+    pretty_print_at(output, print_group_none);
+}
+
+void Num::pretty_print_at(std::ostream& output, print_mode_t type){
+    output << this->val;
 }
 
 /* *********************************************** */
@@ -67,6 +79,37 @@ Expr* Add::subst(std::string name, Expr *replacement){
  
 }
 
+void Add::print(std::ostream& output){
+    Expr *new_lhs = this->lhs;
+    Expr *new_rhs = this->rhs;
+    output << "(";
+    new_lhs->print(output);
+    output << "+";
+    new_rhs->print(output);
+    output<< ")";
+}
+
+void Add::pretty_print(std::ostream& output){
+    Expr *new_lhs = this->lhs;
+    Expr *new_rhs = this->rhs;
+    new_lhs->pretty_print_at(output, print_group_add);
+    output << " + ";
+    new_rhs->pretty_print_at(output, print_group_none);
+}
+
+void Add::pretty_print_at(std::ostream& output, print_mode_t type){
+    Expr *new_lhs = this->lhs;
+    Expr *new_rhs = this->rhs;
+    if (type == print_group_add || type == print_group_add_or_mult){
+        output << "(";
+    }
+    new_lhs->pretty_print_at(output, print_group_add);
+    output << " + ";
+    new_rhs->pretty_print_at(output, print_group_none);
+    if (type == print_group_add || type == print_group_add_or_mult){
+        output << ")";
+    }
+}
 /* *********************************************** */
 
 Mult::Mult(Expr *lhs, Expr *rhs){
@@ -97,6 +140,38 @@ Expr* Mult::subst(std::string name, Expr *replacement){
     return new Mult(new_lhs, new_rhs);
 }
 
+void Mult::print(std::ostream& output){
+    Expr *new_lhs = this->lhs;
+    Expr *new_rhs = this->rhs;
+    output << "(";
+    new_lhs->print(output);
+    output << "*";
+    new_rhs->print(output);
+    output<< ")";
+}
+
+void Mult::pretty_print(std::ostream& output){
+    Expr *new_lhs = this->lhs;
+    Expr *new_rhs = this->rhs;
+    new_lhs->pretty_print_at(output, print_group_add_or_mult);
+    output << " * ";
+    new_rhs->pretty_print_at(output, print_group_add);
+}
+
+void Mult::pretty_print_at(std::ostream& output, print_mode_t type){
+    Expr *new_lhs = this->lhs;
+    Expr *new_rhs = this->rhs;
+    if (type == print_group_add_or_mult){
+        output << "(";
+    }
+    new_lhs->pretty_print_at(output, print_group_add_or_mult);
+    output << " * ";
+    new_rhs->pretty_print_at(output, print_group_add);
+    if (type == print_group_add_or_mult){
+        output << ")";
+    }
+}
+
 /* *********************************************** */
 
 Variable::Variable(std::string val){
@@ -120,12 +195,41 @@ bool Variable::has_variable(){
     return true;
 }
 
-Expr* Variable::subst(std::string string, Expr *a){
-    if(this->val == string){
-        return a;
+Expr* Variable::subst(std::string name, Expr *replacement){
+    if(this->val == name){
+        return replacement;
     } else {
         return this;
     }
+}
+
+void Variable::print(std::ostream& output){
+    output << this->val;
+}
+
+void Variable::pretty_print(std::ostream& output){
+    pretty_print_at(output, print_group_none);
+}
+
+void Variable::pretty_print_at(std::ostream& output, print_mode_t type){
+    output << this->val;
+}
+/* *********************************************** */
+
+std::string Expr::to_string(){
+    std::ostream stream(nullptr);
+    std::stringbuf str;
+    stream.rdbuf(&str);
+    print(stream);
+    return str.str();
+}
+
+std::string Expr::to_string_pretty(){
+    std::ostream stream(nullptr);
+    std::stringbuf str;
+    stream.rdbuf(&str);
+    pretty_print(stream);
+    return str.str();
 }
 
 /* *********************************************** */
@@ -224,3 +328,52 @@ TEST_CASE ( "Substitution" ){
     CHECK((new Mult(new Variable("x"), new Num(7)))->subst("x", new Variable("y"))->equals(new Mult(new Variable("y"), new Num(7)))==true);
     CHECK((new Add(new Variable("x"), new Num(7)))->subst("x", new Variable("y"))->equals(new Add(new Variable("y"), new Num(7)))==true);
 }
+
+TEST_CASE ( "Print" ){
+    CHECK ((new Num(5))->to_string() == "5");
+    CHECK ((new Variable("x"))->to_string() == "x");
+    CHECK ((new Add(new Num(5), new Num(4)))->to_string() == "(5+4)");
+    CHECK (((new Add(new Variable("x"), (new Mult(new Num(2),new Num(4)))))->to_string())=="(x+(2*4))");
+    CHECK ((new Add( new Mult(new Num(3), new Num(2)), new Mult( new Num(5), new Num(6))))->to_string() == "((3*2)+(5*6))");
+}
+
+TEST_CASE ( "Pretty Print Basic" ){
+    CHECK ((new Num(5))->to_string_pretty() == "5");
+    CHECK ((new Variable("x"))->to_string_pretty() == "x");
+    CHECK ((new Add(new Num(5), new Num(4)))->to_string_pretty() == "5 + 4");
+    CHECK ((new Mult(new Num(5), new Num(4)))->to_string_pretty() == "5 * 4");
+    CHECK ((new Add(new Variable("a"), new Variable("b")))->to_string_pretty() == "a + b");
+    CHECK ((new Mult(new Variable("a"), new Variable("b")))->to_string_pretty() == "a * b");
+}
+
+TEST_CASE ( "Pretty Print Moderate" ){
+    CHECK ((new Add(new Add( new Num(3), new Num(4)), new Variable("a")))->to_string_pretty() == "(3 + 4) + a");
+    CHECK ((new Add(new Num(3), new Add( new Num(4), new Num(5))))->to_string_pretty() == "3 + 4 + 5");
+    CHECK ((new Add(new Num(3), new Mult( new Num(4), new Variable("b"))))->to_string_pretty() == "3 + 4 * b");
+    CHECK ((new Add(new Mult( new Num(3), new Num(4)), new Num(5)))->to_string_pretty() == "3 * 4 + 5");
+    CHECK ((new Mult(new Add( new Num(3), new Variable("a")), new Num(5)))->to_string_pretty() == "(3 + a) * 5");
+    CHECK ((new Mult(new Variable("b"), new Add( new Num(4), new Num(5))))->to_string_pretty() == "b * (4 + 5)");
+    CHECK ((new Mult(new Num(3), new Mult( new Num(4), new Num(5))))->to_string_pretty() == "3 * 4 * 5");
+    CHECK ((new Mult(new Mult( new Variable("a"), new Num(4)), new Num(5)))->to_string_pretty() == "(a * 4) * 5");
+}
+
+TEST_CASE ( "Pretty Print Advanced" ){
+       CHECK ((new Add(new Add( new Num(3), new Num(4)), new Add( new Num(5), new Variable("a"))))->to_string_pretty() == "(3 + 4) + 5 + a");
+       CHECK ((new Add(new Mult( new Variable("a"), new Num(4)), new Mult( new Num(5), new Num(6))))->to_string_pretty() == "a * 4 + 5 * 6");
+       CHECK ((new Add(new Add( new Num(3), new Variable("a")), new Mult( new Num(5), new Num(6))))->to_string_pretty() == "(3 + a) + 5 * 6");
+       CHECK ((new Add(new Mult( new Variable("b"), new Variable("a")), new Add( new Num(5), new Num(6))))->to_string_pretty() == "b * a + 5 + 6");
+       CHECK ((new Mult(new Add( new Num(3), new Num(4)), new Add( new Num(5), new Variable("b"))))->to_string_pretty() == "(3 + 4) * (5 + b)");
+       CHECK ((new Mult(new Mult( new Num(3), new Num(4)), new Mult( new Num(5), new Num(6))))->to_string_pretty() == "(3 * 4) * 5 * 6");
+       CHECK ((new Mult(new Add( new Num(3), new Variable("b")), new Mult( new Variable("a"), new Num(6))))->to_string_pretty() == "(3 + b) * a * 6");
+       CHECK ((new Mult(new Mult( new Num(3), new Num(4)), new Add( new Num(5), new Variable("a"))))->to_string_pretty() == "(3 * 4) * (5 + a)");
+}
+
+TEST_CASE ( "Pretty Print Extreme" ){
+    CHECK ((new Mult (new Add (new Variable ("a"), new Variable ("b")), new Num (7)))->to_string_pretty() == "(a + b) * 7");
+    CHECK ((new Mult (new Mult (new Add (new Variable ("a"), new Variable ("b")), new Num (7)), new Num (6)))->to_string_pretty() == "((a + b) * 7) * 6");
+    CHECK ((new Mult (new Mult (new Mult (new Add (new Variable ("a"), new Variable ("b")), new Num (7)), new Num (6)), new Variable ("c")))->to_string_pretty() == "(((a + b) * 7) * 6) * c");
+    CHECK ((new Mult(new Mult(new Mult( new Num(3), new Num(4)), new Mult( new Num(5), new Num(6))), new Variable ("b")))->to_string_pretty()=="((3 * 4) * 5 * 6) * b");
+    CHECK ((new Mult(new Mult( new Mult( new Num(3), new Num(4)), new Mult( new Num(5), new Num(6))), new Add( new Num(7), new Num(8))))->to_string_pretty() == "((3 * 4) * 5 * 6) * (7 + 8)");
+    CHECK ((new Mult(new Mult( new Add( new Variable("a"), new Variable("b")), new Num(7)), new Mult( new Num(6), new Variable("c"))))->to_string_pretty() == "((a + b) * 7) * 6 * c");
+}
+
