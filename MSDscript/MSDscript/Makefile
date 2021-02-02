@@ -9,6 +9,10 @@ CXXFLAGS = --std=c++14 -O2
 MSDscript: $(OBJS)
 	$(CXX) $(CXXFLAGS) -o MSDscript $(OBJS)
 
+.PHONY: test
+test: MSDscript
+	./MSDscript --test
+
 main.o: main.cpp $(INCS)
 	$(CXX) $(CXXFLAGS) -c main.cpp
 
