@@ -45,7 +45,7 @@ void Num::pretty_print(std::ostream& output){
     pretty_print_at(output, print_group_none, 0);
 }
 
-void Num::pretty_print_at(std::ostream& output, print_mode_t type, long position){
+void Num::pretty_print_at(std::ostream& output, print_mode_t type, long *position){
     output << this->val;
 }
 
@@ -92,21 +92,23 @@ void Add::print(std::ostream& output){
 void Add::pretty_print(std::ostream& output){
     Expr *new_lhs = this->lhs;
     Expr *new_rhs = this->rhs;
-    new_lhs->pretty_print_at(output, print_group_add, 0);
+    long position = output.tellp();
+    long *positionptr = &position;
+    new_lhs->pretty_print_at(output, print_group_add_or_let, positionptr);
     output << " + ";
-    new_rhs->pretty_print_at(output, print_group_none, 0);
+    new_rhs->pretty_print_at(output, print_group_none, positionptr);
 }
 
-void Add::pretty_print_at(std::ostream& output, print_mode_t type, long position){
+void Add::pretty_print_at(std::ostream& output, print_mode_t type, long *position){
     Expr *new_lhs = this->lhs;
     Expr *new_rhs = this->rhs;
-    if (type == print_group_add || type == print_group_add_or_mult){
+    if (type == print_group_add || type == print_group_add_or_let || type == print_group_add_mult_or_let){
         output << "(";
     }
-    new_lhs->pretty_print_at(output, print_group_add, position);
+    new_lhs->pretty_print_at(output, print_group_add_or_let, position);
     output << " + ";
     new_rhs->pretty_print_at(output, print_group_none, position);
-    if (type == print_group_add || type == print_group_add_or_mult){
+    if (type == print_group_add || type == print_group_add_or_let || type == print_group_add_mult_or_let){
         output << ")";
     }
 }
@@ -153,22 +155,30 @@ void Mult::print(std::ostream& output){
 void Mult::pretty_print(std::ostream& output){
     Expr *new_lhs = this->lhs;
     Expr *new_rhs = this->rhs;
-    new_lhs->pretty_print_at(output, print_group_add_or_mult, 0);
+    long position = output.tellp();
+    long *positionptr = &position;
+    new_lhs->pretty_print_at(output, print_group_add_mult_or_let, positionptr);
     output << " * ";
-    new_rhs->pretty_print_at(output, print_group_add, 0);
+    new_rhs->pretty_print_at(output, print_group_add, positionptr);
 }
 
-void Mult::pretty_print_at(std::ostream& output, print_mode_t type, long position){
+void Mult::pretty_print_at(std::ostream& output, print_mode_t type, long *position){
     Expr *new_lhs = this->lhs;
     Expr *new_rhs = this->rhs;
-    if (type == print_group_add_or_mult){
-        output << "(";
-    }
-    new_lhs->pretty_print_at(output, print_group_add_or_mult, position);
-    output << " * ";
-    new_rhs->pretty_print_at(output, print_group_add, position);
-    if (type == print_group_add_or_mult){
-        output << ")";
+    if (type == print_group_add_or_let){
+        new_lhs->pretty_print_at(output, print_group_add_mult_or_let, position);
+        output << " * ";
+        new_rhs->pretty_print_at(output, print_group_add_or_let, position);
+    } else {
+        if (type == print_group_add_mult_or_let){
+            output << "(";
+        }
+        new_lhs->pretty_print_at(output, print_group_add_mult_or_let, position);
+        output << " * ";
+        new_rhs->pretty_print_at(output, print_group_add, position);
+        if (type == print_group_add_mult_or_let){
+            output << ")";
+        }
     }
 }
 
@@ -211,7 +221,7 @@ void Variable::pretty_print(std::ostream& output){
     pretty_print_at(output, print_group_none, 0);
 }
 
-void Variable::pretty_print_at(std::ostream& output, print_mode_t type, long position){
+void Variable::pretty_print_at(std::ostream& output, print_mode_t type, long *position){
     output << this->name;
 }
 /* *********************************************** */
@@ -243,11 +253,17 @@ int Let::interp(){
 bool Let::has_variable(){
     return ((this->rhs->has_variable()) || this->body->has_variable());
 }
+
+//Always substitute RHS. Body changes iff the variable we are replacing and the bound variable are different
 Expr* Let::subst(std::string string, Expr *replacement){
-    Expr *new_body = this->body;
     std::string new_lhs = this->lhs;
-    Expr *new_rhs = rhs->subst(string, replacement);
-    return new_body->subst(new_lhs, new_rhs);
+    //Always substitute on the right, even if it doesn't replace anything
+    Expr *new_rhs = this->rhs->subst(string, replacement);
+    Expr *new_body = this->body;
+    if(new_lhs!=(string)){
+        new_body = new_body->subst(string, replacement);
+    }
+    return new Let (new_lhs, new_rhs, new_body);
 }
 
 void Let::print(std::ostream& output){
@@ -266,34 +282,36 @@ void Let::pretty_print(std::ostream& output){
     Expr *new_rhs = this->rhs;
     Expr *new_body = this->body;
     output << "_let " << new_lhs << " = ";
-    new_rhs->pretty_print_at(output, print_group_let, 0);
+    new_rhs->pretty_print_at(output, print_group_none, 0);
     output << "\n";
     long new_line_pos = output.tellp();
+    long *position = &new_line_pos;
     output << "_in  ";
-    new_body->pretty_print_at(output, print_group_let, new_line_pos);
+    new_body->pretty_print_at(output, print_group_none, position);
 }
 
-void Let::pretty_print_at(std::ostream& output, print_mode_t type, long position){
+void Let::pretty_print_at(std::ostream& output, print_mode_t type, long *position){
     std::string new_lhs = this->lhs;
     Expr *new_rhs = this->rhs;
     Expr *new_body = this->body;
-    if (type == print_group_add || type == print_group_add_or_mult){
+    if (type == print_group_add_or_let || type == print_group_add_mult_or_let){
         output << "(";
     }
     long curr_let_pos = output.tellp();
     output << "_let " << new_lhs << " = ";
-    new_rhs->pretty_print_at(output, print_group_let, position);
+    new_rhs->pretty_print_at(output, print_group_none, position);
     output << "\n";
-    long new_line_pos = output.tellp();
-    long spaces = curr_let_pos - position;
+    long position_value = *position;
+    long spaces = curr_let_pos - position_value;
+    *position = output.tellp();
     int space_count = 0;
     while (space_count < spaces){
         output << " ";
         space_count++;
     }
     output << "_in  ";
-    new_body->pretty_print_at(output, print_group_let, new_line_pos);
-    if (type == print_group_add || type == print_group_add_or_mult){
+    new_body->pretty_print_at(output, print_group_none, position);
+    if (type == print_group_add_or_let || type == print_group_add_mult_or_let){
         output << ")";
     }
 }
@@ -430,6 +448,54 @@ TEST_CASE ( "Substitution" ){
     CHECK((new Variable("a"))->subst("b", new Variable("c"))->equals(new Variable("a"))== true);
     CHECK((new Mult(new Variable("x"), new Num(7)))->subst("x", new Variable("y"))->equals(new Mult(new Variable("y"), new Num(7)))==true);
     CHECK((new Add(new Variable("x"), new Num(7)))->subst("x", new Variable("y"))->equals(new Add(new Variable("y"), new Num(7)))==true);
+    //Always substitue RHS. Body changes iff the variable we are replacing and the bound variable are different
+    //
+    //No Change
+    //_let x = 1
+    //_in x + 2 ->subst(x, y+3)
+    Expr *let1 = new Let("x",
+                         new Num(1),
+                         new Add(new Variable("x"), new Num(2)));
+    CHECK((let1)->subst("x", new Add(new Variable("y"), new Num(3)))->equals(let1));
+    //Only change RHS
+    //_let x = x
+    //_in x + 2 ->subst(x, 5)
+    //=
+    //_let x = 5
+    //_in x + 2
+    Expr *let2 = new Let("x",
+                         new Variable("x"),
+                         new Add(new Variable("x"), new Num(2)));
+    CHECK((let2->subst("x", new Num(5))
+           ->equals(new Let("x",
+                            new Num(5),
+                            new Add (new Variable("x"), new Num(2))))));
+    //Only change Body
+    //_let x = 8
+    //_in x+y-> subst("y", 9)
+    // =
+    //_let x = 8
+    //_in x+9
+    Expr *let3 = new Let ("x",
+                          new Num(8),
+                          new Add (new Variable("x"), new Variable("y")));
+    CHECK((let3-> subst("y", new Num(9)))
+          ->equals(new Let ("x",
+                            new Num(8),
+                            new Add (new Variable("x"), new Num(9)))));
+    //Change RHS and Body
+    //_let x = y
+    //_in x+y-> subst("y", 9)
+    // =
+    //_let x = 9
+    //_in x+9
+    Expr *let4 = new Let ("x",
+                          new Variable ("y"),
+                          new Add (new Variable("x"), new Variable("y")));
+    CHECK((let4-> subst("y", new Num(9)))
+          ->equals(new Let ("x",
+                            new Num(9),
+                            new Add (new Variable("x"), new Num(9)))));
 }
 
 TEST_CASE ( "Print" ){
@@ -463,14 +529,14 @@ TEST_CASE ( "Pretty Print Moderate" ){
 }
 
 TEST_CASE ( "Pretty Print Advanced" ){
-       CHECK ((new Add(new Add( new Num(3), new Num(4)), new Add( new Num(5), new Variable("a"))))->to_string_pretty() == "(3 + 4) + 5 + a");
-       CHECK ((new Add(new Mult( new Variable("a"), new Num(4)), new Mult( new Num(5), new Num(6))))->to_string_pretty() == "a * 4 + 5 * 6");
-       CHECK ((new Add(new Add( new Num(3), new Variable("a")), new Mult( new Num(5), new Num(6))))->to_string_pretty() == "(3 + a) + 5 * 6");
-       CHECK ((new Add(new Mult( new Variable("b"), new Variable("a")), new Add( new Num(5), new Num(6))))->to_string_pretty() == "b * a + 5 + 6");
-       CHECK ((new Mult(new Add( new Num(3), new Num(4)), new Add( new Num(5), new Variable("b"))))->to_string_pretty() == "(3 + 4) * (5 + b)");
-       CHECK ((new Mult(new Mult( new Num(3), new Num(4)), new Mult( new Num(5), new Num(6))))->to_string_pretty() == "(3 * 4) * 5 * 6");
-       CHECK ((new Mult(new Add( new Num(3), new Variable("b")), new Mult( new Variable("a"), new Num(6))))->to_string_pretty() == "(3 + b) * a * 6");
-       CHECK ((new Mult(new Mult( new Num(3), new Num(4)), new Add( new Num(5), new Variable("a"))))->to_string_pretty() == "(3 * 4) * (5 + a)");
+    CHECK ((new Add(new Add( new Num(3), new Num(4)), new Add( new Num(5), new Variable("a"))))->to_string_pretty() == "(3 + 4) + 5 + a");
+    CHECK ((new Add(new Mult( new Variable("a"), new Num(4)), new Mult( new Num(5), new Num(6))))->to_string_pretty() == "a * 4 + 5 * 6");
+    CHECK ((new Add(new Add( new Num(3), new Variable("a")), new Mult( new Num(5), new Num(6))))->to_string_pretty() == "(3 + a) + 5 * 6");
+    CHECK ((new Add(new Mult( new Variable("b"), new Variable("a")), new Add( new Num(5), new Num(6))))->to_string_pretty() == "b * a + 5 + 6");
+    CHECK ((new Mult(new Add( new Num(3), new Num(4)), new Add( new Num(5), new Variable("b"))))->to_string_pretty() == "(3 + 4) * (5 + b)");
+    CHECK ((new Mult(new Mult( new Num(3), new Num(4)), new Mult( new Num(5), new Num(6))))->to_string_pretty() == "(3 * 4) * 5 * 6");
+    CHECK ((new Mult(new Add( new Num(3), new Variable("b")), new Mult( new Variable("a"), new Num(6))))->to_string_pretty() == "(3 + b) * a * 6");
+    CHECK ((new Mult(new Mult( new Num(3), new Num(4)), new Add( new Num(5), new Variable("a"))))->to_string_pretty() == "(3 * 4) * (5 + a)");
 }
 
 TEST_CASE ( "Pretty Print Extreme" ){
@@ -493,4 +559,7 @@ TEST_CASE ( "Let Pretty Print" ){
     CHECK((new Mult( new Num(5), new Add(new Let("x", new Num(5), new Variable("x")), new Num (1))))->to_string_pretty() == "5 * ((_let x = 5\n      _in  x) + 1)");
     CHECK((new Add(new Mult(new Num(5), new Let("x", new Num(5), new Variable("x"))), new Num (1)))->to_string_pretty() == "5 * (_let x = 5\n     _in  x) + 1");
     CHECK((new Mult(new Num(5), new Add(new Let("x", new Num(5), new Variable("x")), new Num (1))))->to_string_pretty() == "5 * ((_let x = 5\n      _in  x) + 1)");
+    CHECK((new Add( new Let( "x", new Num(1), new Add( new Variable("x"), new Num(2))), new Let( "y", new Num(3), new Add( new Variable("y"), new Num(4)))))->to_string_pretty() == "(_let x = 1\n _in  x + 2) + _let y = 3\n               _in  y + 4");
+    CHECK ((new Mult( new Num (5), (new Let("x", new Num(5), new Let("y", new Num(3), new Let( "z", new Num(1), new Add (new Variable("z"), new Num(4))))))))->to_string_pretty() == "5 * _let x = 5\n    _in  _let y = 3\n         _in  _let z = 1\n              _in  z + 4");
+    CHECK((new Mult( new Num (5), new Let("x", new Num(5), new Add(new Variable("x"), new Num(1)))))->to_string_pretty() == "5 * _let x = 5\n    _in  x + 1");
 }
