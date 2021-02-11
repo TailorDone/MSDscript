@@ -41,7 +41,7 @@ public:
     //Writes an expression as a string
     std::string to_string();
     //Writes an expression as a prettier string
-    std::string to_string_pretty();
+    std::string to_string_pretty();    
 };
 
 class Num: public Expr {
@@ -56,6 +56,7 @@ public:
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
+    
 };
 
 class Add: public Expr{
