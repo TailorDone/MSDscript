@@ -551,9 +551,9 @@ TEST_CASE ( "Pretty Print Extreme" ){
 
 TEST_CASE ( "Let Pretty Print" ){
     CHECK ((new Let("x", new Num(5), new Add(new Variable("x"), new Num(1))))->to_string_pretty() == "_let x = 5\n_in  x + 1");
-    CHECK ((new Let("x", new Num(5), new Let("x", new Num(1), new Add( new Variable("x"), new Num(3)))))->to_string_pretty() == "_let x = 5\n_in  _let x = 1\n     _in  x + 3\n");
+    CHECK ((new Let("x", new Num(5), new Let("x", new Num(1), new Add( new Variable("x"), new Num(3)))))->to_string_pretty() == "_let x = 5\n_in  _let x = 1\n     _in  x + 3");
     CHECK ((new Let("x", new Num(5), new Add(new Let("y", new Num(3), new Add(new Variable("y"), new Num(2))), new Variable("x"))))->to_string_pretty() == "_let x = 5\n_in  (_let y = 3\n      _in  y + 2) + x");
-    CHECK ((new Let("x", new Num(5), new Let("y", new Num(3), new Let( "z", new Num(1), new Add (new Variable("z"), new Num(4))))))->to_string_pretty() == "_let x = 5\n_in  _let y = 3\n     _in  _let z = 1\n          _in  z + 4\n");
+    CHECK ((new Let("x", new Num(5), new Let("y", new Num(3), new Let( "z", new Num(1), new Add (new Variable("z"), new Num(4))))))->to_string_pretty() == "_let x = 5\n_in  _let y = 3\n     _in  _let z = 1\n          _in  z + 4");
     CHECK((new Mult(new Let("x", new Num(5), new Add(new Variable("x"), new Num(1))), new Num (5)))->to_string_pretty() == "(_let x = 5\n _in  x + 1) * 5");
     CHECK((new Add( new Num (5), new Let("x", new Num(5), new Add(new Variable("x"), new Num(1)))))->to_string_pretty() == "5 + _let x = 5\n    _in  x + 1");
     CHECK((new Add(new Let("x", new Num(5), new Add(new Variable("x"), new Num(1))), new Num (5)))->to_string_pretty() == "(_let x = 5\n _in  x + 1) + 5");
@@ -562,5 +562,5 @@ TEST_CASE ( "Let Pretty Print" ){
     CHECK((new Mult(new Num(5), new Add(new Let("x", new Num(5), new Variable("x")), new Num (1))))->to_string_pretty() == "5 * ((_let x = 5\n      _in  x) + 1)");
     CHECK((new Add( new Let( "x", new Num(1), new Add( new Variable("x"), new Num(2))), new Let( "y", new Num(3), new Add( new Variable("y"), new Num(4)))))->to_string_pretty() == "(_let x = 1\n _in  x + 2) + _let y = 3\n               _in  y + 4");
     CHECK ((new Mult( new Num (5), (new Let("x", new Num(5), new Let("y", new Num(3), new Let( "z", new Num(1), new Add (new Variable("z"), new Num(4))))))))->to_string_pretty() == "5 * _let x = 5\n    _in  _let y = 3\n         _in  _let z = 1\n              _in  z + 4");
-    CHECK((new Mult( new Num (5), new Let("x", new Num(5), new Add(new Variable("x"), new Num(1)))))->to_string_pretty() == "5 * _let x = 5\n    _in  x + 1\n");
+    CHECK((new Mult( new Num (5), new Let("x", new Num(5), new Add(new Variable("x"), new Num(1)))))->to_string_pretty() == "5 * _let x = 5\n    _in  x + 1");
 }

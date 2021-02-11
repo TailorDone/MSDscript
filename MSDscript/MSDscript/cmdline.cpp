@@ -37,7 +37,7 @@ void use_arguments(int argc, char *argv[]){
             Expr* user_input = nullptr;
             user_input = Parser::parse_expr(std::cin);
             int value = user_input->interp();
-            std::cout <<value;
+            std::cout << value;
             exit(0);
         } else if (arg == "--print"){
             Expr* user_input = nullptr;
@@ -47,7 +47,7 @@ void use_arguments(int argc, char *argv[]){
         } else if (arg == "--pretty-print"){
             Expr* user_input = nullptr;
             user_input = Parser::parse_expr(std::cin);
-            user_input->pretty_print(std::cout);
+            std::cout << user_input->to_string_pretty();
             exit(0);
         } else {
             std::cerr << "Invalid Argument\n";

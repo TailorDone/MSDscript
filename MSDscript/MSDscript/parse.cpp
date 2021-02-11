@@ -10,6 +10,9 @@
 void Parser::consume (std::istream &in, int expect){
    int c = in.get();
    if(c!= expect){
+       char c_as_char = (char)c;
+       char expect_as_char = (char) expect;
+       std::cout << "your c value was " << c_as_char << " but we expected: " << expect_as_char;
        throw std::runtime_error("consume mismatch");
    }
 }
@@ -53,6 +56,50 @@ Expr* Parser::parse_variable(std::istream &in){
    std::string character;
    character = (char) c;
    return new Variable(character);
+}
+
+void Parser::parse_keyword(std::istream &in, std::string keyword){
+    std::string keyword_check = "";
+    for (int i = 0; i < keyword.size(); i++){
+        keyword_check += in.get();
+    }
+    if (keyword_check == keyword){
+        return;
+    } else {
+        throw std::runtime_error("unable to parse keyword");
+    }
+}
+
+Expr* Parser::parse_let(std::istream &in){
+    skip_whitespace(in);
+    int c = in.peek();
+    if (c=='_'){
+        consume(in, '_');
+        parse_keyword(in, "let");
+    } else {
+        throw std::runtime_error("let expected");
+    }
+    skip_whitespace(in);
+    std::string lhs = parse_variable(in)->to_string_pretty();
+    skip_whitespace(in);
+    c = in.peek();
+    if (c=='='){
+        consume(in, '=');
+    } else {
+        throw std::runtime_error("equal expected");
+    }
+    skip_whitespace(in);
+    Expr* rhs = parse_expr(in);
+    skip_whitespace(in);
+    c = in.peek();
+    if (c=='_'){
+        consume(in, '_');
+        parse_keyword(in, "in");
+    } else {
+        throw std::runtime_error("in expected");
+    }
+    Expr* body = parse_expr(in);
+    return new Let(lhs, rhs, body);
 }
 
 Expr* Parser::parse_expr(std::istream &in){
@@ -99,8 +146,9 @@ Expr* Parser::parse_multicand(std::istream &in){
        return e;
        } else if (c != '_'){
            return parse_variable(in);
+       } else if ( c == '_'){
+           return parse_let(in);
        } else {
-           //parse let
-           throw std::runtime_error("something went wrong");
+           throw std::runtime_error("unable to process request");
        }
 }
