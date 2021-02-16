@@ -23,6 +23,7 @@ public:
     static void skip_whitespace(std::istream &in);
     static Expr* parse_let(std::istream &in);
     static void parse_keyword(std::istream &in, std::string keyword);
+    static Expr* parse_str(std::string s);
 };
 
 #endif /* parse_hpp */
