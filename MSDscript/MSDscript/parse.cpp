@@ -11,49 +11,52 @@
 #include <cassert>
 
 void consume (std::istream &in, int expect){
-   int c = in.get();
-   assert(c == expect);
+    int c = in.get();
+    assert(c == expect);
 }
 
 void skip_whitespace(std::istream &in){
-   while(1){
-       int c = in.peek();
-       if(!isspace(c)){
-           break;
-       }
-       consume(in, c);
-   }
+    while(1){
+        int c = in.peek();
+        if(!isspace(c)){
+            break;
+        }
+        consume(in, c);
+    }
 }
 
 Expr* parse_num(std::istream &in){
-   int n = 0;
-   bool negative = false;
-   if (in.peek() == '-'){
-       negative = true;
-       consume(in, '-');
-   }
-   while(1) {
-       int c = in.peek();
-       if (isdigit(c)){
-           consume(in, c);
-           n = n*10 + (c - '0');
-       } else {
-           break;
-       }
-   }
-   if (negative){
-       n = -n;
-   }
-   return new Num(n);
+    int n = 0;
+    bool negative = false;
+    if (in.peek() == '-'){
+        negative = true;
+        consume(in, '-');
+    }
+    while(1) {
+        int c = in.peek();
+        if (isdigit(c)){
+            consume(in, c);
+            n = n*10 + (c - '0');
+        } else {
+            break;
+        }
+    }
+    if (negative){
+        n = -n;
+    }
+    return new Num(n);
 }
 
 Expr* parse_variable(std::istream &in){
-   skip_whitespace(in);
-   int c = in.peek();
-   consume (in, c);
-   std::string character;
-   character = (char) c;
-   return new Variable(character);
+    skip_whitespace(in);
+    int c = in.peek();
+    std::string s = "";
+    while(isalpha(c)){
+        s+=c;
+        consume (in, c);
+        c = in.peek();
+    }
+    return new Variable(s);
 }
 
 void parse_keyword(std::istream &in, std::string keyword){
@@ -93,54 +96,54 @@ Expr* parse_let(std::istream &in){
 }
 
 Expr* parse_expr(std::istream &in){
-   Expr *e;
-   e = parse_addend(in);
-   skip_whitespace(in);
-   int c = in.peek();
-   if (c=='+'){
-       consume(in, '+');
-       Expr *rhs = parse_expr(in);
-       return new Add(e,rhs);
-   } else {
-       return e;
-   }
+    Expr *e;
+    e = parse_addend(in);
+    skip_whitespace(in);
+    int c = in.peek();
+    if (c=='+'){
+        consume(in, '+');
+        Expr *rhs = parse_expr(in);
+        return new Add(e,rhs);
+    } else {
+        return e;
+    }
 }
 
 Expr* parse_addend(std::istream &in){
-   Expr *e;
-   e = parse_multicand(in);
-   skip_whitespace(in);
-   int c = in.peek();
-   if(c=='*'){
-       consume(in, '*');
-       Expr *rhs = parse_addend(in);
-       return new Mult(e, rhs);
-   } else {
-       return e;
-   }
+    Expr *e;
+    e = parse_multicand(in);
+    skip_whitespace(in);
+    int c = in.peek();
+    if(c=='*'){
+        consume(in, '*');
+        Expr *rhs = parse_addend(in);
+        return new Mult(e, rhs);
+    } else {
+        return e;
+    }
 }
 
 Expr* parse_multicand(std::istream &in){
-   skip_whitespace(in);
-   int c = in.peek();
-   if((c=='-') || isdigit(c)){
-       return parse_num(in);
-   } else if (c == '('){
-       consume(in, '(');
-       Expr *e = parse_expr(in); //recursive function
-       skip_whitespace(in);
-       c = in.get();
+    skip_whitespace(in);
+    int c = in.peek();
+    if((c=='-') || isdigit(c)){
+        return parse_num(in);
+    } else if (c == '('){
+        consume(in, '(');
+        Expr *e = parse_expr(in); //recursive function
+        skip_whitespace(in);
+        c = in.get();
         if (c!= ')'){
             throw std::runtime_error("missing close parenthesis");
         }
         return e;
-       } else if (c != '_'){
-           return parse_variable(in);
-       } else if ( c == '_'){
-           return parse_let(in);
-       } else {
-           throw std::runtime_error("unable to process request");
-       }
+    } else if (c != '_'){
+        return parse_variable(in);
+    } else if ( c == '_'){
+        return parse_let(in);
+    } else {
+        throw std::runtime_error("unable to process request");
+    }
 }
 
 Expr* parse_str(std::string s){
@@ -152,6 +155,7 @@ TEST_CASE ("Parse"){
     CHECK((parse_str("1")->equals(new Num(1))));
     CHECK((parse_str("0"))->equals(new Num(0)));
     CHECK((parse_str("-1"))->equals(new Num(-1)));
+    CHECK((parse_str("taylor"))->equals(new Variable("taylor")));
     CHECK((parse_str("0+1"))->equals(new Add(new Num(0), new Num(1))));
     CHECK((parse_str("-1+1"))->equals(new Add(new Num(-1),new Num(1))) == true);
     CHECK((parse_str("(0+1)+1"))->equals(new Add(new Add(new Num(0), new Num(1)),new Num(1))) == true);

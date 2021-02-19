@@ -43,11 +43,12 @@ void use_arguments(int argc, char *argv[]){
             Expr* user_input = nullptr;
             user_input = parse_expr(std::cin);
             user_input->print(std::cout);
+            std::cout << "\n";
             exit(0);
         } else if (arg == "--pretty-print"){
             Expr* user_input = nullptr;
             user_input = parse_expr(std::cin);
-            std::cout << user_input->to_string_pretty();
+            std::cout << user_input->to_string_pretty() << "\n";
             exit(0);
         } else {
             std::cerr << "Invalid Argument\n";
