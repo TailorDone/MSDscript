@@ -379,6 +379,8 @@ TEST_CASE( "variable equals" ){
     Variable *mod = new Variable("%");
     Variable *percent = new Variable("%");
     Variable *one = new Variable("1");
+    Variable *word = new Variable("word");
+    Variable *word2 = new Variable("word");
     Num *num1 = new Num(1);
     CHECK(mod->equals(percent) == true);
     CHECK(one->equals(num1) == false);
@@ -386,6 +388,7 @@ TEST_CASE( "variable equals" ){
     CHECK((new Mult(new Variable("*"),new Num(1)))->equals(new Mult(new Variable("*"),new Num(1))) == true);
     CHECK((new Mult(one, num1))->equals(new Mult(one, num1)) == true);
     CHECK((new Mult(num1, one))->equals(new Mult(one, num1)) == false);
+    CHECK((word)->equals(word2));
 }
 
 TEST_CASE ( "let equals" ){

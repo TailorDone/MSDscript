@@ -35,18 +35,18 @@ void use_arguments(int argc, char *argv[]){
             }
         } else if (arg == "--interp"){
             Expr* user_input = nullptr;
-            user_input = Parser::parse_expr(std::cin);
+            user_input = parse_expr(std::cin);
             int value = user_input->interp();
             std::cout << value;
             exit(0);
         } else if (arg == "--print"){
             Expr* user_input = nullptr;
-            user_input = Parser::parse_expr(std::cin);
+            user_input = parse_expr(std::cin);
             user_input->print(std::cout);
             exit(0);
         } else if (arg == "--pretty-print"){
             Expr* user_input = nullptr;
-            user_input = Parser::parse_expr(std::cin);
+            user_input = parse_expr(std::cin);
             std::cout << user_input->to_string_pretty();
             exit(0);
         } else {

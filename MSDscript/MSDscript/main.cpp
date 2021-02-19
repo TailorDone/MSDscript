@@ -10,6 +10,11 @@
 #include "parse.hpp"
 
 int main(int argc, char *argv[]) {
-    use_arguments(argc, argv);
-    return 0;
+    try{
+        use_arguments(argc, argv);
+        return 0;
+    } catch (std::runtime_error exn){
+        std::cerr << exn.what() << "\n";
+        return 1;
+    }
 }

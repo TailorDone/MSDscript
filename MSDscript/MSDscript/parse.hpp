@@ -11,19 +11,16 @@
 #include <stdio.h>
 #include "expr.hpp"
 
-class Parser{
-    
-public:
-    static Expr* parse_num(std::istream &in);
-    static Expr* parse_variable(std::istream &in);
-    static Expr* parse_multicand(std::istream &in);
-    static Expr* parse_expr(std::istream &in);
-    static Expr* parse_addend(std::istream &in);
-    static void consume (std::istream &in, int expect);
-    static void skip_whitespace(std::istream &in);
-    static Expr* parse_let(std::istream &in);
-    static void parse_keyword(std::istream &in, std::string keyword);
-    static Expr* parse_str(std::string s);
-};
+    Expr* parse_num(std::istream &in);
+    Expr* parse_variable(std::istream &in);
+    Expr* parse_multicand(std::istream &in);
+    Expr* parse_expr(std::istream &in);
+    Expr* parse_addend(std::istream &in);
+    Expr* parse_let(std::istream &in);
+    void parse_keyword(std::istream &in, std::string keyword);
+    Expr* parse_str(std::string s);
+    void consume (std::istream &in, int expect);
+    void skip_whitespace(std::istream &in);
+
 
 #endif /* parse_hpp */

@@ -8,18 +8,14 @@
 #include "parse.hpp"
 #include "catch.h"
 #include <stdexcept>
+#include <cassert>
 
-void Parser::consume (std::istream &in, int expect){
+void consume (std::istream &in, int expect){
    int c = in.get();
-   if(c!= expect){
-       char c_as_char = (char)c;
-       char expect_as_char = (char) expect;
-       std::cout << "your c value was " << c_as_char << " but we expected: " << expect_as_char;
-       throw std::runtime_error("consume mismatch");
-   }
+   assert(c == expect);
 }
 
-void Parser::skip_whitespace(std::istream &in){
+void skip_whitespace(std::istream &in){
    while(1){
        int c = in.peek();
        if(!isspace(c)){
@@ -29,7 +25,7 @@ void Parser::skip_whitespace(std::istream &in){
    }
 }
 
-Expr* Parser::parse_num(std::istream &in){
+Expr* parse_num(std::istream &in){
    int n = 0;
    bool negative = false;
    if (in.peek() == '-'){
@@ -51,7 +47,7 @@ Expr* Parser::parse_num(std::istream &in){
    return new Num(n);
 }
 
-Expr* Parser::parse_variable(std::istream &in){
+Expr* parse_variable(std::istream &in){
    skip_whitespace(in);
    int c = in.peek();
    consume (in, c);
@@ -60,7 +56,7 @@ Expr* Parser::parse_variable(std::istream &in){
    return new Variable(character);
 }
 
-void Parser::parse_keyword(std::istream &in, std::string keyword){
+void parse_keyword(std::istream &in, std::string keyword){
     std::string keyword_check = "";
     for (int i = 0; i < keyword.size(); i++){
         keyword_check += in.get();
@@ -72,7 +68,7 @@ void Parser::parse_keyword(std::istream &in, std::string keyword){
     }
 }
 
-Expr* Parser::parse_let(std::istream &in){
+Expr* parse_let(std::istream &in){
     skip_whitespace(in);
     int c = in.peek();
     consume(in, '_');
@@ -96,7 +92,7 @@ Expr* Parser::parse_let(std::istream &in){
     return new Let(lhs, rhs, body);
 }
 
-Expr* Parser::parse_expr(std::istream &in){
+Expr* parse_expr(std::istream &in){
    Expr *e;
    e = parse_addend(in);
    skip_whitespace(in);
@@ -110,7 +106,7 @@ Expr* Parser::parse_expr(std::istream &in){
    }
 }
 
-Expr* Parser::parse_addend(std::istream &in){
+Expr* parse_addend(std::istream &in){
    Expr *e;
    e = parse_multicand(in);
    skip_whitespace(in);
@@ -124,7 +120,7 @@ Expr* Parser::parse_addend(std::istream &in){
    }
 }
 
-Expr* Parser::parse_multicand(std::istream &in){
+Expr* parse_multicand(std::istream &in){
    skip_whitespace(in);
    int c = in.peek();
    if((c=='-') || isdigit(c)){
@@ -147,36 +143,35 @@ Expr* Parser::parse_multicand(std::istream &in){
        }
 }
 
-Expr* Parser::parse_str(std::string s){
+Expr* parse_str(std::string s){
     std::istringstream str(s);
     return parse_expr(str);
 }
 
 TEST_CASE ("Parse"){
-    CHECK((Parser::parse_str("1")->interp()==1));
-    CHECK((Parser::parse_str("0")->interp()==0));
-    CHECK((Parser::parse_str("-1")->interp()==-1));
-    CHECK((Parser::parse_str("2+4")->interp()==6));
-    CHECK((Parser::parse_str("2*4")->interp()==8));
-    CHECK((Parser::parse_str("_let x = 2 _in x + 5"))->interp()==7);
-    CHECK((Parser::parse_str("_let x = 5 _in _let y = 3 _in x + 5"))->interp()==10);
-    CHECK((Parser::parse_str("2+4"))->interp() == 6);
-    CHECK((Parser::parse_str("-10+7"))->interp() == -3);
-    CHECK((Parser::parse_str("31+-31"))->interp() == 0);
-    CHECK((Parser::parse_str("2*5"))->interp() == 10);
-    CHECK((Parser::parse_str("2*-5"))->interp() == -10);
-    CHECK((Parser::parse_str("_let x = 5 _in x + 1"))->interp() == 6);
-    CHECK((Parser::parse_str("_let x = 5 + 2 _in x + 1"))->interp() == 8);
-    CHECK_THROWS_WITH((Parser::parse_str("x"))->interp(), "No value for variable" );
-    CHECK_THROWS_WITH((Parser::parse_str("&"))->interp(), "No value for variable" );
-    CHECK_THROWS_WITH((Parser::parse_str(""))->interp(), "No value for variable" );
-    CHECK_THROWS_WITH((Parser::parse_str("b+31"))->interp(), "No value for variable" );
-    CHECK_THROWS_WITH((Parser::parse_str("3*t"))->interp(), "No value for variable" );
-    CHECK_THROWS_WITH((Parser::parse_str("_let x = t _in x+1"))->interp(), "No value for variable");
-    CHECK_THROWS_WITH((Parser::parse_str("_lot x = 3 _in x+1"))->interp(), "unable to parse keyword");
-    CHECK_THROWS_WITH((Parser::parse_str("_let x + 3 _in x+1"))->interp(), "equal expected");
-    CHECK_THROWS_WITH((Parser::parse_str("_let x = 3 _it x+1"))->interp(), "unable to parse keyword");
-    CHECK_THROWS_WITH((Parser::parse_str("(x+4"))->interp(), "missing close parenthesis");
-    //CHECK_THROWS_WITH((Parser::parse_str("4+1)"))->interp(), "missing close parenthesis"); Fix This
-    CHECK_THROWS_WITH((Parser::parse_str("3+(4+1"))->interp(), "missing close parenthesis");
+    CHECK((parse_str("1")->equals(new Num(1))));
+    CHECK((parse_str("0"))->equals(new Num(0)));
+    CHECK((parse_str("-1"))->equals(new Num(-1)));
+    CHECK((parse_str("0+1"))->equals(new Add(new Num(0), new Num(1))));
+    CHECK((parse_str("-1+1"))->equals(new Add(new Num(-1),new Num(1))) == true);
+    CHECK((parse_str("(0+1)+1"))->equals(new Add(new Add(new Num(0), new Num(1)),new Num(1))) == true);
+    CHECK((parse_str("0*1"))->equals(new Mult(new Num(0),new Num(1))) == true);
+    CHECK((parse_str("(-2*1)*3"))->equals(new Mult(new Mult(new Num(-2), new Num(1)),new Num(3))) == true);
+    CHECK((parse_str("x*y"))->equals(new Mult(new Variable("x"),new Variable("y"))));
+    CHECK((parse_str("w * 1"))->equals(new Mult(new Variable("w"),new Num(1))));
+    std::string name = "x";
+    Let *let1 = new Let(name, new Num(5), (new Add (new Variable("x"), new Num (4))));
+    CHECK((parse_str("_let x=5 _in x+4")->equals(let1)));
+    CHECK((parse_str("_let x=5 _in _let x = x+2 _in x + 1")->equals(new Let("x", new Num(5), new Let("x", new Add( new Variable("x"), new Num(2)), new Add(new Variable("x"), new Num(1)))))));
+    CHECK_THROWS_WITH((parse_str("x"))->interp(), "No value for variable" );
+    CHECK_THROWS_WITH((parse_str("&"))->interp(), "No value for variable" );
+    CHECK_THROWS_WITH((parse_str(""))->interp(), "No value for variable" );
+    CHECK_THROWS_WITH((parse_str("b+31"))->interp(), "No value for variable" );
+    CHECK_THROWS_WITH((parse_str("3*t"))->interp(), "No value for variable" );
+    CHECK_THROWS_WITH((parse_str("_let x = t _in x+1"))->interp(), "No value for variable");
+    CHECK_THROWS_WITH((parse_str("_lot x = 3 _in x+1"))->interp(), "unable to parse keyword");
+    CHECK_THROWS_WITH((parse_str("_let x + 3 _in x+1"))->interp(), "equal expected");
+    CHECK_THROWS_WITH((parse_str("_let x = 3 _it x+1"))->interp(), "unable to parse keyword");
+    CHECK_THROWS_WITH((parse_str("(x+4"))->interp(), "missing close parenthesis");
+    CHECK_THROWS_WITH((parse_str("3+(4+1"))->interp(), "missing close parenthesis");
 }
