@@ -26,7 +26,7 @@ int main (int argc, char **argv) {
             if (interp_again_result.out != interp_result.out){
                 throw std::runtime_error("different result for printed");
             }
-        }else if(argc == 3){
+        } else if(argc == 3){
             const char * const interp2_argv[] = { argv[2], "--interp" };
             const char * const print2_argv[] = { argv[2], "--print" };
             const char * const prettyprint2_argv[] = { argv[2], "--pretty-print" };
@@ -35,18 +35,18 @@ int main (int argc, char **argv) {
             ExecResult prettyprint_result = exec_program(2, prettyprint_argv, in);
             ExecResult prettyprint2_result = exec_program(2, prettyprint2_argv, in);
             if (interp_result.out != interp2_result.out){
-                std::cout << "taylors result: " << interp_result.out << "\n";
-                std::cout << "tylers result: " << interp2_result.out << "\n";
+                std::cout << "result 1: " << interp_result.out << "\n";
+                std::cout << "result 2: " << interp2_result.out << "\n";
                 throw std::runtime_error("different interp results");
             }
             if (print_result.out != print2_result.out){
-                std::cout << "taylors result: " << print_result.out << "\n";
-                std::cout << "tylers result: " << print2_result.out << "\n";
+                std::cout << "result 1: " << print_result.out << "\n";
+                std::cout << "result 2: " << print2_result.out << "\n";
                 throw std::runtime_error("different print results");
             }
             if (prettyprint_result.out != prettyprint2_result.out){
-                std::cout << "taylors result: " << prettyprint_result.out << "\n";
-                std::cout << "tylers result: " << prettyprint_result.out << "\n";
+                std::cout << "result 1: " << prettyprint_result.out << "\n";
+                std::cout << "result 2: " << prettyprint2_result.out << "\n";
                 throw std::runtime_error("different pretty print results");
             }
         } else {
@@ -57,13 +57,44 @@ int main (int argc, char **argv) {
 }
 
 std::string random_expr_string() {
-    int n = (rand() % 10);
-    if (n < 5)
+    int n = (rand() % 23);
+    if (n < 10)
         return std::to_string(rand());
-    else if (n > 4 && n < 7)
-        return random_expr_string() + "+" + random_expr_string();
-    else if (n > 6 && n < 9)
-        return random_expr_string() + "*" + random_expr_string();
-    else
-        return "_let x = 3 _in x";
+    else if (n < 16){
+        if (n==10) {
+            return "(" + random_expr_string() + "+" + random_expr_string() + ")"; // (expr + expr)
+        } else if (n==11) {
+            return random_expr_string() + "+" + random_expr_string(); // expr + expr
+        } else if (n == 12) {
+            return "x + " + random_expr_string(); // x + expr
+        } else if (n == 13) {
+            return random_expr_string() + " + x"; // expr + x
+        } else if (n == 14) {
+            return "(x + " + random_expr_string() + ")"; // (x + expr)
+        } else{
+            return "(" + random_expr_string() + " + x)"; // (expr + x)
+        }
+    }
+    else if (n < 22){
+        if (n==16) {
+            return "(" + random_expr_string() + "*" + random_expr_string() + ")"; // (expr * expr)
+        } else if (n==17) {
+            return random_expr_string() + "*" + random_expr_string(); // expr * expr
+        } else if (n == 18) {
+            return "x * " + random_expr_string(); // x * expr
+        } else if (n == 19) {
+            return random_expr_string() + " * x"; // expr * x
+        } else if (n == 20) {
+            return "(x * " + random_expr_string() + ")"; // (x * expr)
+        } else{
+            return "(" + random_expr_string() + " * x)"; // (expr * x)
+        }
+    }
+    else{
+        if (n == 21){
+        return "_let x = " + random_expr_string() + " _in " + random_expr_string(); // single let
+        } else {
+        return "_let x = " + random_expr_string() + " _in _let x = " + random_expr_string() + " _in " + random_expr_string(); // nested let
+        }
+    }
 }
