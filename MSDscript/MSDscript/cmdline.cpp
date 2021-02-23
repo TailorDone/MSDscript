@@ -9,6 +9,7 @@
 #include "cmdline.hpp"
 #include "catch.h"
 #include "parse.hpp"
+#include "val.hpp"
 
 
 void use_arguments(int argc, char *argv[]){
@@ -36,8 +37,8 @@ void use_arguments(int argc, char *argv[]){
         } else if (arg == "--interp"){
             Expr* user_input = nullptr;
             user_input = parse_expr(std::cin);
-            int value = user_input->interp();
-            std::cout << value;
+            Val* value = user_input->interp();
+            value->print(std::cout);
         } else if (arg == "--print"){
             Expr* user_input = nullptr;
             user_input = parse_expr(std::cin);

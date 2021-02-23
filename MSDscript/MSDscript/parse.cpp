@@ -44,7 +44,7 @@ Expr* parse_num(std::istream &in){
     if (negative){
         n = -n;
     }
-    return new Num(n);
+    return new NumExpr(n);
 }
 
 Expr* parse_variable(std::istream &in){
@@ -56,7 +56,7 @@ Expr* parse_variable(std::istream &in){
         consume (in, c);
         c = in.peek();
     }
-    return new Variable(s);
+    return new VarExpr(s);
 }
 
 void parse_keyword(std::istream &in, std::string keyword){
@@ -92,7 +92,7 @@ Expr* parse_let(std::istream &in){
     consume(in, '_');
     parse_keyword(in, "in");
     Expr* body = parse_expr(in);
-    return new Let(lhs, rhs, body);
+    return new LetExpr(lhs, rhs, body);
 }
 
 Expr* parse_expr(std::istream &in){
@@ -103,7 +103,7 @@ Expr* parse_expr(std::istream &in){
     if (c=='+'){
         consume(in, '+');
         Expr *rhs = parse_expr(in);
-        return new Add(e,rhs);
+        return new AddExpr(e,rhs);
     } else {
         return e;
     }
@@ -117,7 +117,7 @@ Expr* parse_addend(std::istream &in){
     if(c=='*'){
         consume(in, '*');
         Expr *rhs = parse_addend(in);
-        return new Mult(e, rhs);
+        return new MultExpr(e, rhs);
     } else {
         return e;
     }
@@ -152,21 +152,21 @@ Expr* parse_str(std::string s){
 }
 
 TEST_CASE ("Parse"){
-    CHECK((parse_str("1")->equals(new Num(1))));
-    CHECK((parse_str("0"))->equals(new Num(0)));
-    CHECK((parse_str("-1"))->equals(new Num(-1)));
-    CHECK((parse_str("taylor"))->equals(new Variable("taylor")));
-    CHECK((parse_str("0+1"))->equals(new Add(new Num(0), new Num(1))));
-    CHECK((parse_str("-1+1"))->equals(new Add(new Num(-1),new Num(1))) == true);
-    CHECK((parse_str("(0+1)+1"))->equals(new Add(new Add(new Num(0), new Num(1)),new Num(1))) == true);
-    CHECK((parse_str("0*1"))->equals(new Mult(new Num(0),new Num(1))) == true);
-    CHECK((parse_str("(-2*1)*3"))->equals(new Mult(new Mult(new Num(-2), new Num(1)),new Num(3))) == true);
-    CHECK((parse_str("x*y"))->equals(new Mult(new Variable("x"),new Variable("y"))));
-    CHECK((parse_str("w * 1"))->equals(new Mult(new Variable("w"),new Num(1))));
+    CHECK((parse_str("1")->equals(new NumExpr(1))));
+    CHECK((parse_str("0"))->equals(new NumExpr(0)));
+    CHECK((parse_str("-1"))->equals(new NumExpr(-1)));
+    CHECK((parse_str("taylor"))->equals(new VarExpr("taylor")));
+    CHECK((parse_str("0+1"))->equals(new AddExpr(new NumExpr(0), new NumExpr(1))));
+    CHECK((parse_str("-1+1"))->equals(new AddExpr(new NumExpr(-1),new NumExpr(1))) == true);
+    CHECK((parse_str("(0+1)+1"))->equals(new AddExpr(new AddExpr(new NumExpr(0), new NumExpr(1)),new NumExpr(1))) == true);
+    CHECK((parse_str("0*1"))->equals(new MultExpr(new NumExpr(0),new NumExpr(1))) == true);
+    CHECK((parse_str("(-2*1)*3"))->equals(new MultExpr(new MultExpr(new NumExpr(-2), new NumExpr(1)),new NumExpr(3))) == true);
+    CHECK((parse_str("x*y"))->equals(new MultExpr(new VarExpr("x"),new VarExpr("y"))));
+    CHECK((parse_str("w * 1"))->equals(new MultExpr(new VarExpr("w"),new NumExpr(1))));
     std::string name = "x";
-    Let *let1 = new Let(name, new Num(5), (new Add (new Variable("x"), new Num (4))));
+    LetExpr *let1 = new LetExpr(name, new NumExpr(5), (new AddExpr (new VarExpr("x"), new NumExpr (4))));
     CHECK((parse_str("_let x=5 _in x+4")->equals(let1)));
-    CHECK((parse_str("_let x=5 _in _let x = x+2 _in x + 1")->equals(new Let("x", new Num(5), new Let("x", new Add( new Variable("x"), new Num(2)), new Add(new Variable("x"), new Num(1)))))));
+    CHECK((parse_str("_let x=5 _in _let x = x+2 _in x + 1")->equals(new LetExpr("x", new NumExpr(5), new LetExpr("x", new AddExpr( new VarExpr("x"), new NumExpr(2)), new AddExpr(new VarExpr("x"), new NumExpr(1)))))));
     CHECK_THROWS_WITH((parse_str("x"))->interp(), "No value for variable" );
     CHECK_THROWS_WITH((parse_str("&"))->interp(), "No value for variable" );
     CHECK_THROWS_WITH((parse_str(""))->interp(), "No value for variable" );

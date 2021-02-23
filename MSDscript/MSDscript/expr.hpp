@@ -21,13 +21,15 @@ typedef enum {
     print_group_add_mult_or_let
 } print_mode_t;
 
+class Val;
+
 class Expr{
     
 public:
     //Returns whether the calling expression is equal to the parameter expression.
     virtual bool equals(Expr *a) = 0;
     //Returns the value of an expression. If the expression is a variable, throws a runtime error.
-    virtual int interp() = 0;
+    virtual Val* interp() = 0;
     //Returns whether the expression contains a variable.
     virtual bool has_variable() = 0;
     //Returns everywhere that the calling expression contained the parameter string and replaces it with the parameter expression.
@@ -44,13 +46,13 @@ public:
     std::string to_string_pretty();    
 };
 
-class Num: public Expr {
+class NumExpr: public Expr {
 public:
     int val;
     
-    Num(int val);
+    NumExpr(int val);
     bool equals(Expr *other);
-    int interp();
+    Val* interp();
     bool has_variable();
     Expr* subst(std::string string, Expr *a);
     void print(std::ostream& output);
@@ -59,14 +61,14 @@ public:
     
 };
 
-class Add: public Expr{
+class AddExpr: public Expr{
 public:
     Expr *lhs;
     Expr *rhs;
     
-    Add(Expr *lhs, Expr *rhs);
+    AddExpr(Expr *lhs, Expr *rhs);
     bool equals(Expr *other);
-    int interp();
+    Val* interp();
     bool has_variable();
     Expr* subst(std::string string, Expr *a);
     void print(std::ostream& output);
@@ -74,14 +76,14 @@ public:
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
 };
 
-class Mult: public Expr{
+class MultExpr: public Expr{
 public:
     Expr *lhs;
     Expr *rhs;
     
-    Mult(Expr *lhs, Expr *rhs);
+    MultExpr(Expr *lhs, Expr *rhs);
     bool equals(Expr *other);
-    int interp();
+    Val* interp();
     bool has_variable();
     Expr* subst(std::string string, Expr *a);
     void print(std::ostream& output);
@@ -89,13 +91,13 @@ public:
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
 };
 
-class Variable: public Expr{
+class VarExpr: public Expr{
 public:
     std::string name;
     
-    Variable(std::string name);
+    VarExpr(std::string name);
     bool equals(Expr *other);
-    int interp();
+    Val* interp();
     bool has_variable();
     Expr* subst(std::string string, Expr *replacement);
     void print(std::ostream& output);
@@ -103,15 +105,15 @@ public:
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
 };
 
-class Let: public Expr{
+class LetExpr: public Expr{
 public:
     std::string lhs;
     Expr *rhs;
     Expr *body;
     
-    Let(std::string lhs, Expr *rhs, Expr *body);
+    LetExpr(std::string lhs, Expr *rhs, Expr *body);
     bool equals (Expr *other);
-    int interp();
+    Val* interp();
     bool has_variable();
     Expr* subst(std::string string, Expr *replacement);
     void print(std::ostream& output);
