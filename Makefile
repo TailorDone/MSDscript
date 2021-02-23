@@ -1,8 +1,8 @@
-INCS = MSDscript/MSDscript/cmdline.hpp MSDscript/MSDscript/expr.hpp MSDscript/MSDscript/parse.hpp
+INCS = MSDscript/MSDscript/cmdline.hpp MSDscript/MSDscript/expr.hpp MSDscript/MSDscript/parse.hpp MSDscript/MSDscript/val.hpp
 
 INCS2 = MSDscriptTest/MSDscriptTest/exec.hpp
 
-OBJS = MSDscript/MSDscript/main.o MSDscript/MSDscript/cmdline.o MSDscript/MSDscript/expr.o MSDscript/MSDscript/parse.o
+OBJS = MSDscript/MSDscript/main.o MSDscript/MSDscript/cmdline.o MSDscript/MSDscript/expr.o MSDscript/MSDscript/parse.o MSDscript/MSDscript/val.o
 
 OBJS2 = MSDscriptTest/MSDscriptTest/main.o MSDscriptTest/MSDscriptTest/exec.o
 
@@ -35,5 +35,9 @@ expr.o: MSDscript/MSDscript/expr.cpp $(INCS)
 parse.o: MSDscript/MSDscript/parse.cpp $(INCS)
 	$(CXX) $(CXXFLAGS) -c parse.cpp
 
+val.o: MSDscript/MSDscript/val.cpp $(INCS)
+	$(CXX) $(CXXFLAGS) -c val.cpp
+
 exec.o: MSDscriptTest/MSDscriptTest/exec.cpp $(INCS2)
 	$(CXX) $(CXXFLAGS) -c exec.cpp
+
