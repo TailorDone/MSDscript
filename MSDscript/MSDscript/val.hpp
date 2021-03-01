@@ -20,6 +20,7 @@ public:
     virtual Val* add_to(Val* rhs) = 0;
     virtual Val* mult_to(Val* rhs) = 0;
     virtual void print(std::ostream& outstream) = 0;
+    virtual bool is_true() = 0;
 };
 
 class NumVal: public Val {
@@ -32,6 +33,20 @@ public:
     Val* add_to(Val* rhs);
     Val* mult_to(Val* rhs);
     void print (std::ostream& outstream);
+    bool is_true();
+};
+
+class BoolVal: public Val {
+public:
+    bool val;
+    
+    BoolVal(bool val);
+    Expr* to_expr();
+    bool equals(Val* v);
+    Val* add_to(Val* rhs);
+    Val* mult_to(Val* rhs);
+    void print (std::ostream& outstream);
+    bool is_true();
 };
 
 #endif /* val_hpp */

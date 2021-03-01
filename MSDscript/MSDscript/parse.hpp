@@ -17,6 +17,8 @@
     Expr* parse_expr(std::istream &in);
     Expr* parse_addend(std::istream &in);
     Expr* parse_let(std::istream &in);
+    Expr* parse_comparg(std::istream &in);
+    Expr* parse_if(std::istream &in);
     void parse_keyword(std::istream &in, std::string keyword);
     Expr* parse_str(std::string s);
     void consume (std::istream &in, int expect);

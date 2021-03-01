@@ -18,7 +18,8 @@ typedef enum {
     print_group_add,
     print_group_add_or_mult,
     print_group_add_or_let,
-    print_group_add_mult_or_let
+    print_group_add_mult_or_let,
+    print_group_eq
 } print_mode_t;
 
 class Val;
@@ -33,7 +34,7 @@ public:
     //Returns whether the expression contains a variable.
     virtual bool has_variable() = 0;
     //Returns everywhere that the calling expression contained the parameter string and replaces it with the parameter expression.
-    virtual Expr* subst(std::string string, Expr *a) = 0;
+    virtual Expr* subst(std::string name, Expr *replacement) = 0;
     //Prints an expression to an output stream
     virtual void print(std::ostream& output) = 0;
     //Prints an expression in a more visually pleasing way
@@ -54,11 +55,10 @@ public:
     bool equals(Expr *other);
     Val* interp();
     bool has_variable();
-    Expr* subst(std::string string, Expr *a);
+    Expr* subst(std::string name, Expr *replacement);
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
-    
 };
 
 class AddExpr: public Expr{
@@ -70,7 +70,7 @@ public:
     bool equals(Expr *other);
     Val* interp();
     bool has_variable();
-    Expr* subst(std::string string, Expr *a);
+    Expr* subst(std::string name, Expr *replacement);
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
@@ -85,7 +85,7 @@ public:
     bool equals(Expr *other);
     Val* interp();
     bool has_variable();
-    Expr* subst(std::string string, Expr *a);
+    Expr* subst(std::string name, Expr *replacement);
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
@@ -99,7 +99,7 @@ public:
     bool equals(Expr *other);
     Val* interp();
     bool has_variable();
-    Expr* subst(std::string string, Expr *replacement);
+    Expr* subst(std::string name, Expr *replacement);
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
@@ -115,7 +115,52 @@ public:
     bool equals (Expr *other);
     Val* interp();
     bool has_variable();
-    Expr* subst(std::string string, Expr *replacement);
+    Expr* subst(std::string name, Expr *replacement);
+    void print(std::ostream& output);
+    void pretty_print(std::ostream& output);
+    void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
+};
+
+class BoolExpr: public Expr{
+public:
+    bool val;
+    
+    BoolExpr(bool val);
+    bool equals(Expr *other);
+    Val* interp();
+    bool has_variable();
+    Expr* subst(std::string name, Expr *replacement);
+    void print(std::ostream& output);
+    void pretty_print(std::ostream& output);
+    void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
+};
+
+class IfExpr : public Expr{
+public:
+    Expr *test_part;
+    Expr *then_part;
+    Expr *else_part;
+    
+    IfExpr(Expr *test_part, Expr *then_part, Expr *else_part);
+    bool equals(Expr *other);
+    Val* interp();
+    bool has_variable();
+    Expr* subst(std::string name, Expr *replacement);
+    void print(std::ostream& output);
+    void pretty_print(std::ostream& output);
+    void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
+};
+
+class EqExpr : public Expr{
+public:
+    Expr *lhs;
+    Expr *rhs;
+    
+    EqExpr(Expr *lhs, Expr *rhs);
+    bool equals(Expr *other);
+    Val* interp();
+    bool has_variable();
+    Expr* subst(std::string name, Expr *replacement);
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
