@@ -73,7 +73,11 @@ Val* BoolVal::mult_to(Val* rhs){
 }
 
 void BoolVal::print (std::ostream& outstream){
-    outstream << this->val;
+    if (this->val == true){
+        outstream << "_true";
+    } else {
+        outstream << "_false";
+    }
 }
 
 bool BoolVal::is_true(){

@@ -461,6 +461,7 @@ void IfExpr::pretty_print_at(std::ostream& output, print_mode_t type, long *posi
     output << "_then ";
     new_then->pretty_print_at(output, print_group_none, position);
     output << "\n";
+    *position = output.tellp();
     space_count = 0;
     while (space_count < spaces){
         output << " ";
@@ -896,11 +897,11 @@ TEST_CASE("IfExpr Pretty Print"){
                                   new NumExpr(-5))
                        )
            )->to_string_pretty() == "_let y = 3\n_in  _if _true\n     _then 5\n     _else -5");
-    //CHECK((new EqExpr(new IfExpr(new BoolExpr(true),
-//                      new NumExpr(5),
-//                      new NumExpr(-5)), new IfExpr(new BoolExpr(true),
-//                                                   new NumExpr(5),
-//                                                   new NumExpr(-5))))->to_string_pretty()== "_if _true\n_then 5\n_else -5 == _if _true\n            _then 5\n            _else -5");
+    CHECK((new EqExpr(new IfExpr(new BoolExpr(true),
+                      new NumExpr(5),
+                      new NumExpr(-5)), new IfExpr(new BoolExpr(true),
+                                                   new NumExpr(5),
+                                                   new NumExpr(-5))))->to_string_pretty()== "_if _true\n_then 5\n_else -5 == _if _true\n            _then 5\n            _else -5");
     
 }
 

@@ -57,7 +57,7 @@ int main (int argc, char **argv) {
 }
 
 std::string random_expr_string() {
-    int n = (rand() % 62);
+    int n = (rand() % 68);
     //Positive Number
     if (n < 10){
         return std::to_string(rand());
@@ -65,7 +65,7 @@ std::string random_expr_string() {
     else if (n < 20) {
         return "-" + std::to_string(rand());
     }//True
-    else if(n<24){
+    else if(n < 24){
         return "_true";
     }//False
     else if (n < 28){
@@ -108,19 +108,19 @@ std::string random_expr_string() {
             return "_let x = " + random_expr_string() + " _in _let x = " + random_expr_string() + " _in " + random_expr_string(); // nested let
         }
     }//If Expr
-    else if(n < 56){
-        if (n < 52){
+    else if(n < 62){
+        if (n < 58){
             return "_if " + random_expr_string() + "_then" + random_expr_string() + "_else" + random_expr_string();
-        } else if (n <54){
+        } else if (n < 60){
             return "_if _true _then" + random_expr_string() + "_else" + random_expr_string();
-        } else if (n < 56){
+        } else if (n < 62){
             return "_if _false _then" + random_expr_string() + "_else" + random_expr_string();
         }
     }//Eq Expr
     else {
-        if (n < 58){
+        if (n < 64){
             return random_expr_string() + "==" + random_expr_string();
-        } else if (n < 60){
+        } else if (n < 66){
             return random_expr_string() + "==" + random_expr_string();
         } else {
             std::string val = random_expr_string();
