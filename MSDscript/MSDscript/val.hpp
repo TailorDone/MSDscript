@@ -21,6 +21,7 @@ public:
     virtual Val* mult_to(Val* rhs) = 0;
     virtual void print(std::ostream& outstream) = 0;
     virtual bool is_true() = 0;
+    std::string to_string();
 };
 
 class NumVal: public Val {
@@ -48,5 +49,6 @@ public:
     void print (std::ostream& outstream);
     bool is_true();
 };
+
 
 #endif /* val_hpp */

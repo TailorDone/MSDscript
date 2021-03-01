@@ -293,7 +293,7 @@ void LetExpr::pretty_print_at(std::ostream& output, print_mode_t type, long *pos
     std::string new_lhs = this->lhs;
     Expr *new_rhs = this->rhs;
     Expr *new_body = this->body;
-    if (type == print_group_add_or_let || type == print_group_add_mult_or_let){
+    if (type == print_group_add_or_let || type == print_group_add_mult_or_let || type == print_group_eq){
         output << "(";
     }
     long curr_let_pos = output.tellp();
@@ -309,7 +309,7 @@ void LetExpr::pretty_print_at(std::ostream& output, print_mode_t type, long *pos
     }
     output << "_in  ";
     new_body->pretty_print_at(output, print_group_none, position);
-    if (type == print_group_add_or_let || type == print_group_add_mult_or_let){
+    if (type == print_group_add_or_let || type == print_group_add_mult_or_let || type == print_group_eq){
         output << ")";
     }
 }
@@ -444,7 +444,7 @@ void IfExpr::pretty_print_at(std::ostream& output, print_mode_t type, long *posi
     Expr *new_test = this->test_part;
     Expr *new_then = this->then_part;
     Expr *new_else = this->else_part;
-    if (type == print_group_add_or_let || type == print_group_add_mult_or_let){
+    if (type == print_group_add_or_let || type == print_group_add_mult_or_let || type == print_group_eq){
         output << "(";
     }
     long curr_test_pos = output.tellp();
@@ -469,7 +469,7 @@ void IfExpr::pretty_print_at(std::ostream& output, print_mode_t type, long *posi
     }
     output << "_else ";
     new_else->pretty_print_at(output, print_group_none, position);
-    if (type == print_group_add_or_let || type == print_group_add_mult_or_let){
+    if (type == print_group_add_or_let || type == print_group_add_mult_or_let ||  type == print_group_eq){
         output << ")";
     }
 }
@@ -566,6 +566,7 @@ TEST_CASE( "add equals" ){
     CHECK((new AddExpr(new NumExpr(0),new NumExpr(1)))->equals(new AddExpr(new NumExpr(0),new NumExpr(1))) == true);
     CHECK((new AddExpr(new NumExpr(0),new NumExpr(1)))->equals(new AddExpr(new NumExpr(1),new NumExpr(0))) == false);
     CHECK((new AddExpr(new AddExpr(num0, num1),new NumExpr(1)))->equals(new AddExpr(new AddExpr(num0, num1),new NumExpr(1))) == true);
+    
 }
 
 TEST_CASE( "mult equals" ){
@@ -637,6 +638,8 @@ TEST_CASE ( "Object Comparisions" ){
     CHECK((new BoolExpr(true))->equals(new AddExpr(new NumExpr(0), new NumExpr(2))) == false);
     CHECK((new IfExpr(new BoolExpr(true), new NumExpr(5), new NumExpr(2)))->equals(new AddExpr(new NumExpr(0), new NumExpr(2))) == false);
     CHECK((new EqExpr(new NumExpr(0), new NumExpr(3)))->equals(new NumExpr(5)) == false);
+    CHECK((new NumVal(5))->equals(new BoolVal(true))==false);
+    CHECK((new BoolVal(true))->equals(new NumVal(-5))==false);
 }
 
 TEST_CASE ( "Interpret" ){
@@ -693,6 +696,10 @@ TEST_CASE ( "Interpret" ){
     CHECK_THROWS_WITH((new IfExpr(new AddExpr(new NumExpr(4), new NumExpr(1)),
                               new AddExpr(new BoolExpr(false), new NumExpr(5)),
                               new NumExpr(3)))->interp(), "Test expression is not a boolean");
+    CHECK_THROWS_WITH((new AddExpr(new NumExpr(4), new BoolExpr(true)))->interp(), "addition of non-number");
+    CHECK_THROWS_WITH((new MultExpr(new NumExpr(-4), new BoolExpr(true)))->interp(), "multiplication of non-number");
+    CHECK_THROWS_WITH((new AddExpr(new BoolExpr(true), new NumExpr(5)))->interp(), "addition of non-number");
+    CHECK_THROWS_WITH((new MultExpr(new BoolExpr(false), new NumExpr(-5)))->interp(), "multiplication of non-number");
 }
 
 TEST_CASE ( "Has Variable" ){
@@ -790,6 +797,9 @@ TEST_CASE ( "Print" ){
     CHECK ((new EqExpr(new NumExpr(4), new NumExpr(7)))->to_string() == "(4==7)");
     CHECK ((new IfExpr(new BoolExpr(true), new NumExpr(5), new NumExpr(0)))->to_string() == "(_if _true _then 5 _else 0)");
     CHECK ((new IfExpr(new AddExpr(new NumExpr(6), new VarExpr("y")), new NumExpr(5), new NumExpr(0)))->to_string() == "(_if (6+y) _then 5 _else 0)");
+    CHECK((new NumVal(8))->to_string()== "8");
+    CHECK((new BoolVal(true))->to_string() == "_true");
+    CHECK((new BoolVal(false))->to_string() == "_false");
 }
 
 TEST_CASE ( "Pretty Print Basic" ){
@@ -840,12 +850,12 @@ TEST_CASE ( "Let Pretty Print" ){
     CHECK ((new LetExpr("x", new NumExpr(5), new AddExpr(new LetExpr("y", new NumExpr(3), new AddExpr(new VarExpr("y"), new NumExpr(2))), new VarExpr("x"))))->to_string_pretty() == "_let x = 5\n_in  (_let y = 3\n      _in  y + 2) + x");
     CHECK ((new LetExpr("x", new NumExpr(5), new LetExpr("y", new NumExpr(3), new LetExpr( "z", new NumExpr(1), new AddExpr (new VarExpr("z"), new NumExpr(4))))))->to_string_pretty() == "_let x = 5\n_in  _let y = 3\n     _in  _let z = 1\n          _in  z + 4");
     CHECK((new MultExpr(new LetExpr("x", new NumExpr(5), new AddExpr(new VarExpr("x"), new NumExpr(1))), new NumExpr (5)))->to_string_pretty() == "(_let x = 5\n _in  x + 1) * 5");
-    CHECK((new AddExpr( new NumExpr (5), new LetExpr("x", new NumExpr(5), new AddExpr(new VarExpr("x"), new NumExpr(1)))))->to_string_pretty() == "5 + _let x = 5\n    _in  x + 1");
+    CHECK((new AddExpr( new NumExpr (5), new LetExpr("x", new NumExpr(5), new AddExpr(new VarExpr("x"), new NumExpr(1)))))->to_string_pretty() == "5 + (_let x = 5\n     _in  x + 1)");
     CHECK((new AddExpr(new LetExpr("x", new NumExpr(5), new AddExpr(new VarExpr("x"), new NumExpr(1))), new NumExpr (5)))->to_string_pretty() == "(_let x = 5\n _in  x + 1) + 5");
     CHECK((new MultExpr( new NumExpr(5), new AddExpr(new LetExpr("x", new NumExpr(5), new VarExpr("x")), new NumExpr (1))))->to_string_pretty() == "5 * ((_let x = 5\n      _in  x) + 1)");
     CHECK((new AddExpr(new MultExpr(new NumExpr(5), new LetExpr("x", new NumExpr(5), new VarExpr("x"))), new NumExpr (1)))->to_string_pretty() == "5 * (_let x = 5\n     _in  x) + 1");
     CHECK((new MultExpr(new NumExpr(5), new AddExpr(new LetExpr("x", new NumExpr(5), new VarExpr("x")), new NumExpr (1))))->to_string_pretty() == "5 * ((_let x = 5\n      _in  x) + 1)");
-    CHECK((new AddExpr( new LetExpr( "x", new NumExpr(1), new AddExpr( new VarExpr("x"), new NumExpr(2))), new LetExpr( "y", new NumExpr(3), new AddExpr( new VarExpr("y"), new NumExpr(4)))))->to_string_pretty() == "(_let x = 1\n _in  x + 2) + _let y = 3\n               _in  y + 4");
+    CHECK((new AddExpr( new LetExpr( "x", new NumExpr(1), new AddExpr( new VarExpr("x"), new NumExpr(2))), new LetExpr( "y", new NumExpr(3), new AddExpr( new VarExpr("y"), new NumExpr(4)))))->to_string_pretty() == "(_let x = 1\n _in  x + 2) + (_let y = 3\n                _in  y + 4)");
     CHECK ((new MultExpr( new NumExpr (5), (new LetExpr("x", new NumExpr(5), new LetExpr("y", new NumExpr(3), new LetExpr( "z", new NumExpr(1), new AddExpr (new VarExpr("z"), new NumExpr(4))))))))->to_string_pretty() == "5 * _let x = 5\n    _in  _let y = 3\n         _in  _let z = 1\n              _in  z + 4");
     CHECK((new MultExpr( new NumExpr (5), new LetExpr("x", new NumExpr(5), new AddExpr(new VarExpr("x"), new NumExpr(1)))))->to_string_pretty() == "5 * _let x = 5\n    _in  x + 1");
 }
@@ -866,7 +876,7 @@ TEST_CASE ("EqExpr Pretty Print"){
                                    new AddExpr ( new VarExpr("x"), new NumExpr(5)))
                       ))
                       ->to_string_pretty() ==
-                      "_let x = 5\n_in  x + 3 == _let x = 3\n              _in  x + 5");
+                      "(_let x = 5\n _in  x + 3) == _let x = 3\n                _in  x + 5");
     CHECK((new EqExpr (
                        new LetExpr("x",
                                    new NumExpr(5),
@@ -875,7 +885,7 @@ TEST_CASE ("EqExpr Pretty Print"){
                                    new NumExpr(5),
                                    new VarExpr("x"))))
           ->to_string_pretty()==
-          "_let x = 5\n_in  x == _let x = 5\n          _in  x");
+          "(_let x = 5\n _in  x) == _let x = 5\n            _in  x");
     CHECK((new LetExpr("x",
                 new EqExpr(new NumExpr(3), new NumExpr(4)),
                 new VarExpr("x")))
@@ -901,7 +911,7 @@ TEST_CASE("IfExpr Pretty Print"){
                       new NumExpr(5),
                       new NumExpr(-5)), new IfExpr(new BoolExpr(true),
                                                    new NumExpr(5),
-                                                   new NumExpr(-5))))->to_string_pretty()== "_if _true\n_then 5\n_else -5 == _if _true\n            _then 5\n            _else -5");
+                                                   new NumExpr(-5))))->to_string_pretty()== "(_if _true\n _then 5\n _else -5) == _if _true\n              _then 5\n              _else -5");
     
 }
 

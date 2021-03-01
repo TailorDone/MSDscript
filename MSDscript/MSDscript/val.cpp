@@ -28,7 +28,7 @@ Expr* NumVal::to_expr(){
 
 Val *NumVal::add_to(Val *other){
     NumVal *other_num = dynamic_cast<NumVal*>(other);
-    if (other_num == NULL) throw std::runtime_error("add of non-number");
+    if (other_num == NULL) throw std::runtime_error("addition of non-number");
     return new NumVal(this->val + other_num->val);
 }
 
@@ -57,7 +57,7 @@ Expr* BoolVal::to_expr(){
 
 bool BoolVal::equals(Val* other){
     BoolVal *other_val = dynamic_cast<BoolVal*>(other);
-    if (other == NULL){
+    if (other_val == NULL){
         return false;
     } else {
         return (this->val == other_val->val);
@@ -82,4 +82,13 @@ void BoolVal::print (std::ostream& outstream){
 
 bool BoolVal::is_true(){
     return this->val;
+}
+
+/* *********************************************** */
+std::string Val::to_string(){
+    std::ostream stream(nullptr);
+    std::stringbuf str;
+    stream.rdbuf(&str);
+    print(stream);
+    return str.str();
 }
