@@ -16,7 +16,7 @@ int main (int argc, char **argv) {
     const char * const interp_argv[] = { argv[1], "--interp" };
     const char * const print_argv[] = { argv[1], "--print" };
     const char * const prettyprint_argv[] = { argv[1], "--pretty-print" };
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < 100; i++) {
         std::string in = random_expr_string();
         std::cout << "Trying " << in << "\n";
         ExecResult interp_result = exec_program(2, interp_argv, in);
