@@ -57,44 +57,77 @@ int main (int argc, char **argv) {
 }
 
 std::string random_expr_string() {
-    int n = (rand() % 23);
-    if (n < 10)
+    int n = (rand() % 62);
+    //Positive Number
+    if (n < 10){
         return std::to_string(rand());
-    else if (n < 16){
-        if (n==10) {
+    }//Negative Number
+    else if (n < 20) {
+        return "-" + std::to_string(rand());
+    }//True
+    else if(n<24){
+        return "_true";
+    }//False
+    else if (n < 28){
+        return "_false";
+    }//Add Expr
+    else if (n < 40){
+        if (n < 30) {
             return "(" + random_expr_string() + "+" + random_expr_string() + ")"; // (expr + expr)
-        } else if (n==11) {
+        } else if (n < 32) {
             return random_expr_string() + "+" + random_expr_string(); // expr + expr
-        } else if (n == 12) {
+        } else if (n < 34) {
             return "x + " + random_expr_string(); // x + expr
-        } else if (n == 13) {
+        } else if (n < 36) {
             return random_expr_string() + " + x"; // expr + x
-        } else if (n == 14) {
+        } else if (n < 38) {
             return "(x + " + random_expr_string() + ")"; // (x + expr)
         } else{
             return "(" + random_expr_string() + " + x)"; // (expr + x)
         }
-    }
-    else if (n < 22){
-        if (n==16) {
+    }//Mult Expr
+    else if (n < 52){
+        if (n < 42) {
             return "(" + random_expr_string() + "*" + random_expr_string() + ")"; // (expr * expr)
-        } else if (n==17) {
+        } else if (n < 44) {
             return random_expr_string() + "*" + random_expr_string(); // expr * expr
-        } else if (n == 18) {
+        } else if (n < 46) {
             return "x * " + random_expr_string(); // x * expr
-        } else if (n == 19) {
+        } else if (n < 48) {
             return random_expr_string() + " * x"; // expr * x
-        } else if (n == 20) {
+        } else if (n < 50) {
             return "(x * " + random_expr_string() + ")"; // (x * expr)
         } else{
             return "(" + random_expr_string() + " * x)"; // (expr * x)
         }
-    }
-    else{
-        if (n == 21){
-        return "_let x = " + random_expr_string() + " _in " + random_expr_string(); // single let
+    }//Let Expr
+    else if (n < 56){
+        if (n < 54){
+            return "_let x = " + random_expr_string() + " _in " + random_expr_string(); // single let
         } else {
-        return "_let x = " + random_expr_string() + " _in _let x = " + random_expr_string() + " _in " + random_expr_string(); // nested let
+            return "_let x = " + random_expr_string() + " _in _let x = " + random_expr_string() + " _in " + random_expr_string(); // nested let
+        }
+    }//If Expr
+    else if(n < 56){
+        if (n < 52){
+            return "_if " + random_expr_string() + "_then" + random_expr_string() + "_else" + random_expr_string();
+        } else if (n <54){
+            return "_if _true _then" + random_expr_string() + "_else" + random_expr_string();
+        } else if (n < 56){
+            return "_if _false _then" + random_expr_string() + "_else" + random_expr_string();
+        }
+    }//Eq Expr
+    else {
+        if (n < 58){
+            return random_expr_string() + "==" + random_expr_string();
+        } else if (n < 60){
+            return random_expr_string() + "==" + random_expr_string();
+        } else {
+            std::string val = random_expr_string();
+            return val + " == " + val;
         }
     }
+    return "taylor";
 }
+
+
