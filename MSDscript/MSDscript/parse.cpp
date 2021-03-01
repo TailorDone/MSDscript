@@ -6,6 +6,7 @@
 //
 
 #include "parse.hpp"
+#include "val.hpp"
 #include "catch.h"
 #include <stdexcept>
 #include <cassert>
@@ -237,3 +238,9 @@ TEST_CASE ("Parse"){
     CHECK_THROWS_WITH((parse_str("_if 1 _ten 2 _else 5"))->interp(), "then expected");
     CHECK_THROWS_WITH((parse_str("_if 1 _then 2 _els 5"))->interp(), "else expected");
 }
+
+TEST_CASE("Matthews PDF Quiz Parse"){
+    CHECK((parse_str("(1+2)==(3+0)")->interp()->equals((new BoolExpr(true))->interp())));
+    CHECK((parse_str("1+2==3+0")->interp()->equals((new BoolExpr(true))->interp())));
+    CHECK_THROWS_WITH((parse_str("_true + _false"))->interp(),"addition of non-number");
+    }

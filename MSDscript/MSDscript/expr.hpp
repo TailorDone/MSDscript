@@ -19,7 +19,8 @@ typedef enum {
     print_group_add_or_mult,
     print_group_add_or_let,
     print_group_add_mult_or_let,
-    print_group_eq
+    print_group_eq,
+    print_group_add_or_eq
 } print_mode_t;
 
 class Val;
