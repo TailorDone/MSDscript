@@ -30,10 +30,6 @@ Val* NumExpr::interp(){
     return new NumVal(this->val);
 }
 
-bool NumExpr::has_variable(){
-    return false;
-}
-
 Expr* NumExpr::subst(std::string name, Expr *replacement){
     return this;
 }
@@ -67,10 +63,6 @@ bool AddExpr::equals(Expr *other){
 
 Val* AddExpr::interp(){
     return (this->lhs->interp()->add_to(this->rhs->interp()));
-}
-
-bool AddExpr::has_variable(){
-    return (this->lhs->has_variable() || this->rhs->has_variable());
 }
 
 Expr* AddExpr::subst(std::string name, Expr *replacement){
@@ -130,10 +122,6 @@ bool MultExpr::equals(Expr *other){
 
 Val* MultExpr::interp(){
     return (this->lhs->interp()->mult_to(this->rhs->interp()));
-}
-
-bool MultExpr::has_variable(){
-    return (this->lhs->has_variable() || this->rhs->has_variable());
 }
 
 Expr* MultExpr::subst(std::string name, Expr *replacement){
@@ -200,10 +188,6 @@ Val* VarExpr::interp(){
     throw std::runtime_error("No value for variable");
 }
 
-bool VarExpr::has_variable(){
-    return true;
-}
-
 Expr* VarExpr::subst(std::string name, Expr *replacement){
     if(this->name == name){
         return replacement;
@@ -246,10 +230,6 @@ Val* LetExpr::interp(){
     Expr* new_body = this->body;
     Val* simp_rhs = new_rhs->interp();
     return new_body->subst(new_lhs, simp_rhs->to_expr())->interp();
-}
-
-bool LetExpr::has_variable(){
-    return ((this->rhs->has_variable()) || this->body->has_variable());
 }
 
 //Always substitute RHS. Body changes iff the variable we are replacing and the bound variable are different
@@ -350,10 +330,6 @@ Val* BoolExpr::interp(){
     return new BoolVal(this->val);
 }
 
-bool BoolExpr::has_variable(){
-    return false;
-}
-
 Expr* BoolExpr::subst(std::string name, Expr *replacement){
     return this;
 }
@@ -396,10 +372,6 @@ Val* IfExpr::interp(){
     } else {
         return else_part->interp();
     }
-}
-
-bool IfExpr::has_variable(){
-    return ((this->test_part->has_variable()) || (this->then_part->has_variable()) || (this->else_part->has_variable()));
 }
 
 Expr* IfExpr::subst(std::string name, Expr *replacement){
@@ -494,9 +466,6 @@ Val* EqExpr::interp(){
     return new BoolVal((this->lhs->interp()->equals(this->rhs->interp())));
 }
 
-bool EqExpr::has_variable(){
-    return (this->lhs->has_variable() || this->rhs->has_variable());
-}
 
 Expr* EqExpr::subst(std::string name, Expr *replacement){
     Expr *new_lhs = lhs->subst(name, replacement);
@@ -542,6 +511,90 @@ void EqExpr::pretty_print_at(std::ostream& output, print_mode_t type, long *posi
 
 /* *********************************************** */
 
+
+FunExpr::FunExpr(std::string formal_arg, Expr *body){
+    this->formal_arg = formal_arg;
+    this->body = body;
+}
+
+bool FunExpr::equals(Expr *other){
+    FunExpr *other_num = dynamic_cast<FunExpr*>(other);
+    if (other_num == NULL){
+        return false;
+    } else {
+        return (this->formal_arg==other_num->formal_arg) && ((this->body)->equals(other_num->body));
+    }
+}
+
+Val* FunExpr::interp(){
+    return new FunVal(this->formal_arg, this->body); //MIGHT CHANGE
+}
+
+
+Expr* FunExpr::subst(std::string name, Expr *replacement){
+    if (name == formal_arg){
+        return new FunExpr(formal_arg, body);
+    }
+    return new FunExpr(formal_arg, body->subst(name, replacement));
+}
+
+void FunExpr::print(std::ostream& output){
+    output << "(_fun (" << formal_arg << ") ";
+        this->body->print(output);
+        output << ")";
+}
+
+void FunExpr::pretty_print(std::ostream& output){
+  //TODO
+}
+
+void FunExpr::pretty_print_at(std::ostream& output, print_mode_t type, long *position){
+  //TODO
+}
+
+
+/* *********************************************** */
+
+CallExpr::CallExpr(Expr *to_be_called, Expr *actual_arg){
+    this->to_be_called = to_be_called;
+    this->actual_arg = actual_arg;
+}
+
+bool CallExpr::equals(Expr *other){
+    CallExpr *other_num = dynamic_cast<CallExpr*>(other);
+    if (other_num == NULL){
+        return false;
+    } else {
+        return (this->to_be_called)->equals(other_num->to_be_called) && (this->actual_arg)->equals(other_num->actual_arg);
+    }
+}
+
+Val* CallExpr::interp(){
+    return to_be_called->interp()->call(actual_arg->interp());
+}
+
+Expr* CallExpr::subst(std::string name, Expr *replacement){
+    Expr *new_TBC = to_be_called->subst(name,replacement);
+    Expr *new_AA = actual_arg->subst(name, replacement);
+    return new CallExpr(new_TBC, new_AA);
+}
+
+void CallExpr::print(std::ostream& output){
+    this->to_be_called->print(output);
+        output << "(";
+        this->actual_arg->print(output);
+        output << ")";
+}
+
+void CallExpr::pretty_print(std::ostream& output){
+  //TODO
+}
+
+void CallExpr::pretty_print_at(std::ostream& output, print_mode_t type, long *position){
+  //TODO
+}
+
+/* *********************************************** */
 TEST_CASE( "num equals" ){
     CHECK((new NumExpr(0))->equals(new NumExpr(0))==true);
     CHECK((new NumExpr(1))->equals(new NumExpr(1))==true);
@@ -628,6 +681,18 @@ TEST_CASE("equivalence equals"){
     CHECK((new EqExpr(new NumExpr(0), new NumExpr(1)))->equals(new EqExpr(new NumExpr(0), new NumExpr(0))) == false);
 }
 
+TEST_CASE("function equals"){
+    CHECK((new FunExpr("x", new NumExpr(3)))->equals(new FunExpr("x", new NumExpr(3))) == true);
+}
+
+TEST_CASE("call equals"){
+    CHECK((new CallExpr(new NumExpr(4), new NumExpr(3)))->equals(new CallExpr(new NumExpr(4), new NumExpr(3))) == true);
+}
+
+TEST_CASE("fun val equals"){
+    CHECK((new FunVal("y", new NumExpr(5)))->equals(new FunVal("y", new NumExpr(5)))==true);
+}
+
 TEST_CASE ( "Object Comparisions" ){
     CHECK((new MultExpr(new NumExpr(0),new NumExpr(1)))->equals(new AddExpr(new NumExpr(1),new NumExpr(0))) == false);
     CHECK((new VarExpr("*"))->equals(new NumExpr(5)) == false);
@@ -640,6 +705,9 @@ TEST_CASE ( "Object Comparisions" ){
     CHECK((new EqExpr(new NumExpr(0), new NumExpr(3)))->equals(new NumExpr(5)) == false);
     CHECK((new NumVal(5))->equals(new BoolVal(true))==false);
     CHECK((new BoolVal(true))->equals(new NumVal(-5))==false);
+    CHECK((new FunVal("y", new NumExpr(5)))->equals(new BoolVal(true))==false);
+    CHECK((new FunExpr("x", new NumExpr(3)))->equals(new NumExpr(3)) == false);
+    CHECK((new CallExpr(new NumExpr(4), new NumExpr(3)))->equals(new NumExpr(3)) == false);
 }
 
 TEST_CASE ( "Interpret" ){
@@ -700,25 +768,6 @@ TEST_CASE ( "Interpret" ){
     CHECK_THROWS_WITH((new MultExpr(new NumExpr(-4), new BoolExpr(true)))->interp(), "multiplication of non-number");
     CHECK_THROWS_WITH((new AddExpr(new BoolExpr(true), new NumExpr(5)))->interp(), "addition of non-number");
     CHECK_THROWS_WITH((new MultExpr(new BoolExpr(false), new NumExpr(-5)))->interp(), "multiplication of non-number");
-}
-
-TEST_CASE ( "Has Variable" ){
-    CHECK (((new NumExpr(5))->has_variable() == false));
-    CHECK ((new AddExpr(new NumExpr(2),new NumExpr(4)))->has_variable() == false);
-    CHECK ((new AddExpr(new NumExpr(2),new VarExpr("&")))->has_variable() == true);
-    CHECK ((new MultExpr(new NumExpr(2),new NumExpr(4)))->has_variable() == false);
-    CHECK ((new MultExpr(new VarExpr("/"),new NumExpr(4)))->has_variable() == true);
-    CHECK ((new VarExpr("*"))->has_variable() == true);
-    CHECK ((new LetExpr("x", new NumExpr(5), (new AddExpr (new VarExpr("x"), new NumExpr (4)))))->has_variable() == true);
-    CHECK ((new LetExpr("x", new AddExpr (new VarExpr("x"), new NumExpr (4)), new NumExpr (4)))->has_variable() == true);
-    CHECK ((new LetExpr("x", new NumExpr (5), new NumExpr (4)))->has_variable() == false);
-    CHECK ((new BoolExpr(true))->has_variable() == false);
-    CHECK ((new IfExpr(new BoolExpr(true), new NumExpr(5), new NumExpr(2)))->has_variable()==false);//if no variable
-    CHECK ((new IfExpr(new AddExpr(new VarExpr("x"), new NumExpr(3)), new NumExpr(5), new NumExpr(2)))->has_variable()==true);//if variable in test
-    CHECK ((new IfExpr(new BoolExpr(true), new AddExpr(new VarExpr("x"), new NumExpr(3)), new NumExpr(2)))->has_variable()==true);//if variable in then
-    CHECK ((new IfExpr(new BoolExpr(true), new NumExpr(5), new MultExpr(new VarExpr("x"), new NumExpr(3))))->has_variable()==true);//if variable in else
-    CHECK ((new EqExpr(new AddExpr(new VarExpr("x"), new NumExpr(3)), new NumExpr(3)))->has_variable() == true);
-    CHECK ((new EqExpr(new AddExpr(new NumExpr(15), new NumExpr(3)), new NumExpr(3)))->has_variable() == false);
 }
 
 TEST_CASE ( "Substitution" ){
@@ -800,6 +849,9 @@ TEST_CASE ( "Print" ){
     CHECK((new NumVal(8))->to_string()== "8");
     CHECK((new BoolVal(true))->to_string() == "_true");
     CHECK((new BoolVal(false))->to_string() == "_false");
+    CHECK((new FunExpr("x", new AddExpr (new NumExpr(3), new VarExpr("x"))))->to_string() == "(_fun (x) (3+x))");
+    CHECK((new CallExpr(new VarExpr("f"), new NumExpr(3)))->to_string() == "f(3)");
+    CHECK((new CallExpr(new VarExpr("f"), new AddExpr(new NumExpr(3), new VarExpr("x"))))->to_string() == "f((3+x))");
 }
 
 TEST_CASE ( "Pretty Print Basic" ){
@@ -922,4 +974,44 @@ TEST_CASE("Matthews PDF Quiz"){
     CHECK((new EqExpr(new NumExpr(1), new NumExpr(2)))->interp()->equals(new BoolVal(false)));
     CHECK((new EqExpr(new NumExpr(1), new NumExpr(1)))->interp()->equals(new BoolVal(true)));
     CHECK((new EqExpr(new AddExpr(new NumExpr(1), new NumExpr(2)), new AddExpr(new NumExpr(3), new NumExpr(0))))->interp()->equals(new BoolVal(true)));
+}
+
+TEST_CASE("Nested HW Example"){
+    CHECK((new LetExpr("factrl",
+                       new FunExpr("factrl",
+                                   new FunExpr("x",
+                                               new IfExpr(
+                                                          new EqExpr(
+                                                                     new VarExpr("x"),
+                                                                     new NumExpr(1)),
+                                                          new NumExpr(1),
+                                                          new MultExpr(
+                                                                       new VarExpr("x"),
+                                                                       new CallExpr(
+                                                                                    new CallExpr(
+                                                                                                 new VarExpr("factrl"),
+                                                                                                 new VarExpr("factrl")
+                                                                                                 ),
+                                                                                    new AddExpr(
+                                                                                                new VarExpr("x"),
+                                                                                                new NumExpr(-1)
+                                                                                                )
+                                                                                    )
+                                                                       )
+                                                          )
+                                               )
+                                   ),
+                       new CallExpr(
+                                    new CallExpr(
+                                                 new VarExpr("factrl"),
+                                                 new VarExpr("factrl")
+                                                 ),
+                                    new NumExpr(10))))->interp()->equals(new NumVal(3628800)));
+}
+
+TEST_CASE("Val Tests"){
+    CHECK_THROWS_WITH((new BoolVal(true))->call(NULL),"Calling not allowed on BoolVals");
+    CHECK_THROWS_WITH((new NumVal(5))->call(NULL), "Calling not allowed on NumVals");
+    CHECK_THROWS_WITH((new FunVal("y", new NumExpr(5)))->is_true(), "Test expression is not a boolean");
+    CHECK((new FunVal("y", new NumExpr(5)))->to_string() == "(_fun (y) 5)");
 }

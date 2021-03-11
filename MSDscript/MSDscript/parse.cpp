@@ -164,7 +164,7 @@ Expr* parse_addend(std::istream &in){
     }
 }
 
-Expr* parse_multicand(std::istream &in){
+Expr* parse_inner(std::istream &in){
     skip_whitespace(in);
     int c = in.peek();
     if((c=='-') || isdigit(c)){
@@ -190,14 +190,49 @@ Expr* parse_multicand(std::istream &in){
             return new BoolExpr(true);
         } else if (kw == "_if"){
             return parse_if(in);
-        } else {
+        } else if (kw == "_fun"){
+            return parse_function(in);
+        }else {
             throw std::runtime_error("Unable to process keyword");
         }
     } else {
         throw std::runtime_error("Unable to process request");
+    }}
+
+Expr* parse_multicand(std::istream &in){
+    skip_whitespace(in);
+    Expr *e;
+    e = parse_inner(in);
+    skip_whitespace(in);
+    while (in.peek() == '('){
+        consume(in, '(');
+        skip_whitespace(in);
+        Expr *actual_arg = parse_expr(in);
+        skip_whitespace(in);
+        consume(in,')');
+        e = new CallExpr(e, actual_arg);
     }
+    return e;
 }
 
+Expr* parse_function(std::istream &in){
+    skip_whitespace(in);
+    std::string formal_arg;
+    if (in.peek() == '('){
+        consume(in, '(');
+        skip_whitespace(in);
+        formal_arg = parse_variable(in)->to_string_pretty();
+        skip_whitespace(in);
+        int c = in.get();
+        if (c!= ')'){
+            throw std::runtime_error("missing close parenthesis");
+        }
+    }
+    skip_whitespace(in);
+    Expr *body;
+    body = parse_expr(in);
+    return new FunExpr(formal_arg, body);
+}
 
 Expr* parse_str(std::string s){
     std::istringstream str(s);
@@ -223,6 +258,12 @@ TEST_CASE ("Parse"){
     CHECK((parse_str("_if _true _then 5 _else 3")->equals (new IfExpr(new BoolExpr(true), new NumExpr(5), new NumExpr(3)))));
     CHECK((parse_str("_let x=5 _in _if _false _then 1 _else _true")->equals(new LetExpr("x", new NumExpr(5), new IfExpr(new BoolExpr(false), new NumExpr(1), new BoolExpr(true))))));
     CHECK((parse_str("5 == 5")->equals(new EqExpr(new NumExpr(5), new NumExpr(5)))));
+    CHECK((parse_str("_let f = _fun (x) x+1 _in f(5)")->equals(new LetExpr("f",
+                                                                           new FunExpr("x", new AddExpr(new VarExpr("x"), new NumExpr(1))),
+                                                                           new CallExpr(new VarExpr("f"), new NumExpr(5))))));
+    CHECK((parse_str("_let f = _fun (x) _true _in f(5)")->equals(new LetExpr("f",
+                                                                           new FunExpr("x", new BoolExpr(true)),
+                                                                           new CallExpr(new VarExpr("f"), new NumExpr(5))))));
     CHECK_THROWS_WITH((parse_str("x"))->interp(), "No value for variable" );
     CHECK_THROWS_WITH((parse_str("variable"))->interp(), "No value for variable" );
     CHECK_THROWS_WITH((parse_str(""))->interp(), "Unable to process request" );
@@ -237,6 +278,9 @@ TEST_CASE ("Parse"){
     CHECK_THROWS_WITH((parse_str("5=+7"))->interp(), "2nd equal sign expected");
     CHECK_THROWS_WITH((parse_str("_if 1 _ten 2 _else 5"))->interp(), "then expected");
     CHECK_THROWS_WITH((parse_str("_if 1 _then 2 _els 5"))->interp(), "else expected");
+    CHECK_THROWS_WITH((parse_str("_fun (x x-1"))->interp(),"missing close parenthesis");
+    CHECK_THROWS_WITH((parse_str("(_fun (x) 5) + 2"))->interp(), "addition of non-number");
+    CHECK_THROWS_WITH((parse_str("(_fun (x) 5) * 2"))->interp(), "multiplication of non-number");
 }
 
 TEST_CASE("Matthews PDF Quiz Parse"){

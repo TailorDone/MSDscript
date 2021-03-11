@@ -46,6 +46,10 @@ bool NumVal::is_true(){
     throw std::runtime_error("Test expression is not a boolean");
 }
 
+Val* NumVal::call(Val* actual_arg){
+    throw std::runtime_error("Calling not allowed on NumVals");
+}
+
 /* *********************************************** */
 BoolVal::BoolVal(bool val){
     this->val = val;
@@ -84,7 +88,53 @@ bool BoolVal::is_true(){
     return this->val;
 }
 
+Val* BoolVal::call(Val* actual_arg){
+    throw std::runtime_error("Calling not allowed on BoolVals");
+}
+
 /* *********************************************** */
+FunVal::FunVal(std::string formal_arg, Expr *body){
+    this->formal_arg = formal_arg;
+    this->body = body;
+}
+
+Expr* FunVal::to_expr(){
+    return new FunExpr(this->formal_arg, this->body);
+}
+
+bool FunVal::equals(Val* v){
+    FunVal *other_val = dynamic_cast<FunVal*>(v);
+    if (other_val == NULL){
+        return false;
+    } else {
+        return (this->formal_arg == other_val->formal_arg) && (this->body)->equals(other_val->body);
+    }
+}
+
+Val* FunVal::add_to(Val* rhs){
+    throw std::runtime_error("addition of non-number");
+}
+
+Val* FunVal::mult_to(Val* rhs){
+    throw std::runtime_error("multiplication of non-number");
+}
+
+void FunVal::print (std::ostream& outstream){
+    outstream << "(_fun (" << formal_arg << ") ";
+    this->body->print(outstream);
+    outstream << ")";
+}
+
+bool FunVal::is_true(){
+    throw std::runtime_error("Test expression is not a boolean");
+}
+
+Val* FunVal::call(Val* actual_arg){
+    return (body->subst(formal_arg, actual_arg->to_expr()))->interp();
+}
+
+/* *********************************************** */
+
 std::string Val::to_string(){
     std::ostream stream(nullptr);
     std::stringbuf str;
@@ -92,3 +142,6 @@ std::string Val::to_string(){
     print(stream);
     return str.str();
 }
+
+
+
