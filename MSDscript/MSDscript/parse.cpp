@@ -236,7 +236,12 @@ Expr* parse_function(std::istream &in){
 
 Expr* parse_str(std::string s){
     std::istringstream str(s);
-    return parse_expr(str);
+    Expr * e = parse_expr(str);
+    skip_whitespace(str);
+    if(!str.eof()){
+        throw std::runtime_error("Invalid input for an expression");
+    }
+    return e;
 }
 
 TEST_CASE ("Parse"){
