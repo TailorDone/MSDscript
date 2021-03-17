@@ -12,6 +12,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include "pointer.h"
 
 typedef enum {
     print_group_none,
@@ -25,15 +26,17 @@ typedef enum {
 
 class Val;
 
-class Expr{
+CLASS(Expr) {
     
 public:
+    //Destructor
+    virtual ~Expr() {};
     //Returns whether the calling expression is equal to the parameter expression.
-    virtual bool equals(Expr *a) = 0;
+    virtual bool equals(PTR(Expr)a) = 0;
     //Returns the value of an expression. If the expression is a variable, throws a runtime error.
-    virtual Val* interp() = 0;
+    virtual PTR(Val) interp() = 0;
     //Returns everywhere that the calling expression contained the parameter string and replaces it with the parameter expression.
-    virtual Expr* subst(std::string name, Expr *replacement) = 0;
+    virtual PTR(Expr) subst(std::string name, PTR(Expr)replacement) = 0;
     //Prints an expression to an output stream
     virtual void print(std::ostream& output) = 0;
     //Prints an expression in a more visually pleasing way
@@ -51,9 +54,9 @@ public:
     int val;
     
     NumExpr(int val);
-    bool equals(Expr *other);
-    Val* interp();
-    Expr* subst(std::string name, Expr *replacement);
+    bool equals(PTR(Expr)other);
+    PTR(Val) interp();
+    PTR(Expr) subst(std::string name, PTR(Expr)replacement);
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
@@ -61,13 +64,13 @@ public:
 
 class AddExpr: public Expr{
 public:
-    Expr *lhs;
-    Expr *rhs;
+    PTR(Expr)lhs;
+    PTR(Expr)rhs;
     
-    AddExpr(Expr *lhs, Expr *rhs);
-    bool equals(Expr *other);
-    Val* interp();
-    Expr* subst(std::string name, Expr *replacement);
+    AddExpr(PTR(Expr)lhs, PTR(Expr)rhs);
+    bool equals(PTR(Expr)other);
+    PTR(Val) interp();
+    PTR(Expr) subst(std::string name, PTR(Expr)replacement);
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
@@ -75,13 +78,13 @@ public:
 
 class MultExpr: public Expr{
 public:
-    Expr *lhs;
-    Expr *rhs;
+    PTR(Expr)lhs;
+    PTR(Expr)rhs;
     
-    MultExpr(Expr *lhs, Expr *rhs);
-    bool equals(Expr *other);
-    Val* interp();
-    Expr* subst(std::string name, Expr *replacement);
+    MultExpr(PTR(Expr)lhs, PTR(Expr)rhs);
+    bool equals(PTR(Expr)other);
+    PTR(Val) interp();
+    PTR(Expr) subst(std::string name, PTR(Expr)replacement);
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
@@ -92,9 +95,9 @@ public:
     std::string name;
     
     VarExpr(std::string name);
-    bool equals(Expr *other);
-    Val* interp();
-    Expr* subst(std::string name, Expr *replacement);
+    bool equals(PTR(Expr)other);
+    PTR(Val) interp();
+    PTR(Expr) subst(std::string name, PTR(Expr)replacement);
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
@@ -103,13 +106,13 @@ public:
 class LetExpr: public Expr{
 public:
     std::string lhs;
-    Expr *rhs;
-    Expr *body;
+    PTR(Expr)rhs;
+    PTR(Expr)body;
     
-    LetExpr(std::string lhs, Expr *rhs, Expr *body);
-    bool equals (Expr *other);
-    Val* interp();
-    Expr* subst(std::string name, Expr *replacement);
+    LetExpr(std::string lhs, PTR(Expr)rhs, PTR(Expr)body);
+    bool equals (PTR(Expr)other);
+    PTR(Val) interp();
+    PTR(Expr) subst(std::string name, PTR(Expr)replacement);
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
@@ -120,9 +123,9 @@ public:
     bool val;
     
     BoolExpr(bool val);
-    bool equals(Expr *other);
-    Val* interp();
-    Expr* subst(std::string name, Expr *replacement);
+    bool equals(PTR(Expr)other);
+    PTR(Val) interp();
+    PTR(Expr) subst(std::string name, PTR(Expr)replacement);
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
@@ -130,14 +133,14 @@ public:
 
 class IfExpr : public Expr{
 public:
-    Expr *test_part;
-    Expr *then_part;
-    Expr *else_part;
+    PTR(Expr)test_part;
+    PTR(Expr)then_part;
+    PTR(Expr)else_part;
     
-    IfExpr(Expr *test_part, Expr *then_part, Expr *else_part);
-    bool equals(Expr *other);
-    Val* interp();
-    Expr* subst(std::string name, Expr *replacement);
+    IfExpr(PTR(Expr)test_part, PTR(Expr)then_part, PTR(Expr)else_part);
+    bool equals(PTR(Expr)other);
+    PTR(Val) interp();
+    PTR(Expr) subst(std::string name, PTR(Expr)replacement);
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
@@ -145,13 +148,13 @@ public:
 
 class EqExpr : public Expr{
 public:
-    Expr *lhs;
-    Expr *rhs;
+    PTR(Expr)lhs;
+    PTR(Expr)rhs;
     
-    EqExpr(Expr *lhs, Expr *rhs);
-    bool equals(Expr *other);
-    Val* interp();
-    Expr* subst(std::string name, Expr *replacement);
+    EqExpr(PTR(Expr)lhs, PTR(Expr)rhs);
+    bool equals(PTR(Expr)other);
+    PTR(Val) interp();
+    PTR(Expr) subst(std::string name, PTR(Expr)replacement);
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
@@ -160,12 +163,12 @@ public:
 class FunExpr : public Expr{
 public:
     std::string formal_arg;
-    Expr *body;
+    PTR(Expr)body;
     
-    FunExpr(std::string formal_arg, Expr *body);
-    bool equals(Expr *other);
-    Val* interp();
-    Expr* subst(std::string name, Expr *replacement);
+    FunExpr(std::string formal_arg, PTR(Expr)body);
+    bool equals(PTR(Expr)other);
+    PTR(Val) interp();
+    PTR(Expr) subst(std::string name, PTR(Expr)replacement);
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
@@ -173,13 +176,13 @@ public:
 
 class CallExpr : public Expr{
 public:
-    Expr *to_be_called;
-    Expr *actual_arg;
+    PTR(Expr)to_be_called;
+    PTR(Expr)actual_arg;
     
-    CallExpr(Expr *to_be_called, Expr *actual_arg);
-    bool equals(Expr *other);
-    Val* interp();
-    Expr* subst(std::string name, Expr *replacement);
+    CallExpr(PTR(Expr)to_be_called, PTR(Expr)actual_arg);
+    bool equals(PTR(Expr)other);
+    PTR(Val) interp();
+    PTR(Expr) subst(std::string name, PTR(Expr)replacement);
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);

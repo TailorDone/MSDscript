@@ -35,17 +35,14 @@ void use_arguments(int argc, char *argv[]){
                 exit(1);
             }
         } else if (arg == "--interp"){
-            Expr* user_input = nullptr;
-            user_input = parse_expr(std::cin);
-            Val* value = user_input->interp();
+            PTR(Expr) user_input = parse_expr(std::cin);
+            PTR(Val) value = user_input->interp();
             value->print(std::cout);
         } else if (arg == "--print"){
-            Expr* user_input = nullptr;
-            user_input = parse_expr(std::cin);
+            PTR(Expr) user_input = parse_expr(std::cin);
             user_input->print(std::cout);
         } else if (arg == "--pretty-print"){
-            Expr* user_input = nullptr;
-            user_input = parse_expr(std::cin);
+            PTR(Expr) user_input = parse_expr(std::cin);
             std::cout << user_input->to_string_pretty();
         } else {
             std::cerr << "Invalid Argument\n";

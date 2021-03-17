@@ -10,19 +10,20 @@
 
 #include <stdio.h>
 #include "expr.hpp"
+#include "pointer.h"
 
-    Expr* parse_num(std::istream &in);
-    Expr* parse_variable(std::istream &in);
-    Expr* parse_multicand(std::istream &in); //parse inner
-    Expr* parse_expr(std::istream &in);
-    Expr* parse_addend(std::istream &in);
-    Expr* parse_let(std::istream &in);
-    Expr* parse_comparg(std::istream &in);
-    Expr* parse_if(std::istream &in);
-    Expr* parse_inner(std::istream &in);
-Expr* parse_function(std::istream &in);
+    PTR(Expr) parse_num(std::istream &in);
+    PTR(Expr) parse_variable(std::istream &in);
+    PTR(Expr) parse_multicand(std::istream &in); //parse inner
+    PTR(Expr) parse_expr(std::istream &in);
+    PTR(Expr) parse_addend(std::istream &in);
+    PTR(Expr) parse_let(std::istream &in);
+    PTR(Expr) parse_comparg(std::istream &in);
+    PTR(Expr) parse_if(std::istream &in);
+    PTR(Expr) parse_inner(std::istream &in);
+PTR(Expr) parse_function(std::istream &in);
     void parse_keyword(std::istream &in, std::string keyword);
-    Expr* parse_str(std::string s);
+    PTR(Expr) parse_str(std::string s);
     void consume (std::istream &in, int expect);
     void skip_whitespace(std::istream &in);
 

@@ -8,6 +8,7 @@
 #include <iostream>
 #include "cmdline.hpp"
 #include "parse.hpp"
+#include "pointer.h"
 
 int main(int argc, char *argv[]) {
     try{
