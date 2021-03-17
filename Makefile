@@ -1,4 +1,4 @@
-INCS = MSDscript/MSDscript/cmdline.hpp MSDscript/MSDscript/expr.hpp MSDscript/MSDscript/parse.hpp MSDscript/MSDscript/val.hpp
+INCS = MSDscript/MSDscript/cmdline.hpp MSDscript/MSDscript/expr.hpp MSDscript/MSDscript/parse.hpp MSDscript/MSDscript/val.hpp MSDscript/MSDscript/pointer.h
 
 INCS2 = MSDscriptTest/MSDscriptTest/exec.hpp
 
