@@ -689,7 +689,7 @@ TEST_CASE("call equals"){
     CHECK((NEW(CallExpr)(NEW(NumExpr)(4), NEW(NumExpr)(3)))->equals(NEW(CallExpr)(NEW(NumExpr)(4), NEW(NumExpr)(3))) == true);
 }
 
-TEST_CASE("fun val equals"){
+TEST_CASE("fun val equal"){
     CHECK((NEW(FunVal)("y", NEW(NumExpr)(5)))->equals(NEW(FunVal)("y", NEW(NumExpr)(5)))==true);
 }
 
@@ -830,6 +830,8 @@ TEST_CASE ( "Substitution" ){
     CHECK ((NEW(IfExpr)(NEW(NumExpr)(5), NEW(NumExpr)(3), NEW(VarExpr)("x")))->subst("x", NEW(VarExpr)("y"))->equals(NEW(IfExpr)(NEW(NumExpr)(5), NEW(NumExpr)(3), NEW(VarExpr)("y"))));
     CHECK ((NEW(BoolExpr)(true))->subst("y", NEW(NumExpr)(5))->equals(NEW(BoolExpr)(true)));
     CHECK ((NEW(EqExpr)(NEW(AddExpr) (NEW(VarExpr)("x"), NEW(NumExpr)(3)), NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(3))))->subst("x", NEW(NumExpr)(4))->equals( NEW(EqExpr)(NEW(AddExpr) (NEW(NumExpr)(4), NEW(NumExpr)(3)), NEW(AddExpr)(NEW(NumExpr)(4), NEW(NumExpr)(3)))));
+    CHECK((NEW(FunExpr)("x", NEW(AddExpr)(NEW(NumExpr)(4), NEW(VarExpr)("x"))))->subst("x", NEW(VarExpr)("y"))->equals(NEW(FunExpr)("x", NEW(AddExpr)(NEW(NumExpr)(4), NEW(VarExpr)("x")))));
+    CHECK((NEW(CallExpr)(NEW(VarExpr)("x"), NEW(AddExpr)(NEW(NumExpr)(1), NEW(VarExpr)("x"))))->subst("x", NEW(NumExpr)(13))->equals(NEW(CallExpr)(NEW(NumExpr)(13), NEW(AddExpr)(NEW(NumExpr)(1), NEW(NumExpr)(13)))));
 }
 
 TEST_CASE ( "Print" ){
@@ -1014,4 +1016,8 @@ TEST_CASE("Val Tests"){
     CHECK_THROWS_WITH((NEW(NumVal)(5))->call(NULL), "Calling not allowed on NumVals");
     CHECK_THROWS_WITH((NEW(FunVal)("y", NEW(NumExpr)(5)))->is_true(), "Test expression is not a boolean");
     CHECK((NEW(FunVal)("y", NEW(NumExpr)(5)))->to_string() == "(_fun (y) 5)");
+    CHECK((NEW(FunVal)("x",NEW(NumExpr)(3)))->call(NEW(NumVal)(7))->equals(NEW(NumVal)(3)));
+    CHECK((NEW(FunVal)("x",NEW(AddExpr)(NEW(NumExpr)(1),NEW(VarExpr)("x")))->call(NEW(NumVal)(3)))->equals(NEW(NumVal)(4)));
+    CHECK_THROWS_WITH((NEW(FunVal)("y", NEW(AddExpr)(NEW(NumExpr)(1), NEW(VarExpr)("x")))->call(NEW(NumVal)(3))), "No value for variable");
 }
+
