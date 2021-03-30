@@ -1,8 +1,8 @@
-INCS = MSDscript/MSDscript/cmdline.hpp MSDscript/MSDscript/expr.hpp MSDscript/MSDscript/parse.hpp MSDscript/MSDscript/val.hpp MSDscript/MSDscript/pointer.h
+INCS = MSDscript/MSDscript/cmdline.hpp MSDscript/MSDscript/expr.hpp MSDscript/MSDscript/parse.hpp MSDscript/MSDscript/val.hpp MSDscript/MSDscript/pointer.h MSDscript/MSDscript/env.h
 
 INCS2 = MSDscriptTest/MSDscriptTest/exec.hpp
 
-OBJS = MSDscript/MSDscript/main.o MSDscript/MSDscript/cmdline.o MSDscript/MSDscript/expr.o MSDscript/MSDscript/parse.o MSDscript/MSDscript/val.o
+OBJS = MSDscript/MSDscript/main.o MSDscript/MSDscript/cmdline.o MSDscript/MSDscript/expr.o MSDscript/MSDscript/parse.o MSDscript/MSDscript/val.o MSDscript/MSDscript/env.o
 
 OBJS2 = MSDscriptTest/MSDscriptTest/main.o MSDscriptTest/MSDscriptTest/exec.o
 
@@ -40,4 +40,8 @@ val.o: MSDscript/MSDscript/val.cpp $(INCS)
 
 exec.o: MSDscriptTest/MSDscriptTest/exec.cpp $(INCS2)
 	$(CXX) $(CXXFLAGS) -c exec.cpp
+
+env.o: MSDscriptTest/MSDscriptTest/env.cpp $(INCS2)
+	$(CXX) $(CXXFLAGS) -c env.cpp
+
 
