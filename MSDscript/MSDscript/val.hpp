@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <iostream>
 #include "pointer.h"
+#include "env.hpp"
 
 class Expr;
 
@@ -18,7 +19,7 @@ CLASS(Val){
 public:
     //Destructor
     virtual ~Val() {};
-    virtual PTR(Expr) to_expr() = 0;
+    //virtual PTR(Expr) to_expr() = 0;
     virtual bool equals(PTR(Val) v) = 0;
     virtual PTR(Val) add_to(PTR(Val) rhs) = 0;
     virtual PTR(Val) mult_to(PTR(Val) rhs) = 0;
@@ -33,7 +34,7 @@ public:
     int val;
     
     NumVal(int val);
-    PTR(Expr) to_expr();
+    //PTR(Expr) to_expr();
     bool equals(PTR(Val) v);
     PTR(Val) add_to(PTR(Val) rhs);
     PTR(Val) mult_to(PTR(Val) rhs);
@@ -47,7 +48,7 @@ public:
     bool val;
     
     BoolVal(bool val);
-    PTR(Expr) to_expr();
+    //PTR(Expr) to_expr();
     bool equals(PTR(Val) v);
     PTR(Val) add_to(PTR(Val) rhs);
     PTR(Val) mult_to(PTR(Val) rhs);
@@ -59,10 +60,11 @@ public:
 class FunVal: public Val {
 public:
     std::string formal_arg;
-    PTR(Expr)body;
+    PTR(Expr) body;
+    PTR(Env) env;
     
-    FunVal(std::string formal_arg, PTR(Expr)body);
-    PTR(Expr) to_expr();
+    FunVal(std::string formal_arg, PTR(Expr)body, PTR(Env) env);
+    //PTR(Expr) to_expr();
     bool equals(PTR(Val) v);
     PTR(Val) add_to(PTR(Val) rhs);
     PTR(Val) mult_to(PTR(Val) rhs);

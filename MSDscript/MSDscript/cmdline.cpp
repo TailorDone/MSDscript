@@ -10,6 +10,8 @@
 #include "catch.h"
 #include "parse.hpp"
 #include "val.hpp"
+#include "env.hpp"
+#include "pointer.h"
 
 
 void use_arguments(int argc, char *argv[]){
@@ -36,7 +38,7 @@ void use_arguments(int argc, char *argv[]){
             }
         } else if (arg == "--interp"){
             PTR(Expr) user_input = parse_expr(std::cin);
-            PTR(Val) value = user_input->interp();
+            PTR(Val) value = user_input->interp(Env::empty);
             value->print(std::cout);
         } else if (arg == "--print"){
             PTR(Expr) user_input = parse_expr(std::cin);

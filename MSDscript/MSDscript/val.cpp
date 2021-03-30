@@ -7,6 +7,7 @@
 
 #include "val.hpp"
 #include "expr.hpp"
+#include "env.hpp"
 
 
 NumVal::NumVal(int val){
@@ -22,9 +23,9 @@ bool NumVal::equals(PTR(Val) other){
     }
 }
 
-PTR(Expr) NumVal::to_expr(){
-    return NEW(NumExpr)(this->val);
-}
+//PTR(Expr) NumVal::to_expr(){
+//    return NEW(NumExpr)(this->val);
+//}
 
 PTR(Val)NumVal::add_to(PTR(Val)other){
     PTR(NumVal)other_num = CAST(NumVal)(other);
@@ -54,10 +55,10 @@ PTR(Val) NumVal::call(PTR(Val) actual_arg){
 BoolVal::BoolVal(bool val){
     this->val = val;
 }
-
-PTR(Expr) BoolVal::to_expr(){
-    return NEW(BoolExpr)(this->val);
-}
+//
+//PTR(Expr) BoolVal::to_expr(){
+//    return NEW(BoolExpr)(this->val);
+//}
 
 bool BoolVal::equals(PTR(Val) other){
     PTR(BoolVal)other_val = CAST(BoolVal)(other);
@@ -93,14 +94,15 @@ PTR(Val) BoolVal::call(PTR(Val) actual_arg){
 }
 
 /* *********************************************** */
-FunVal::FunVal(std::string formal_arg, PTR(Expr)body){
+FunVal::FunVal(std::string formal_arg, PTR(Expr) body, PTR(Env) env){
     this->formal_arg = formal_arg;
     this->body = body;
+    this->env = env;
 }
 
-PTR(Expr) FunVal::to_expr(){
-    return NEW(FunExpr)(this->formal_arg, this->body);
-}
+//PTR(Expr) FunVal::to_expr(){
+//    return NEW(FunExpr)(this->formal_arg, this->body);
+//}
 
 bool FunVal::equals(PTR(Val) v){
     PTR(FunVal)other_val = CAST(FunVal)(v);
@@ -130,7 +132,7 @@ bool FunVal::is_true(){
 }
 
 PTR(Val) FunVal::call(PTR(Val) actual_arg){
-    return (body->subst(formal_arg, actual_arg->to_expr()))->interp();
+    return body->interp(NEW(ExtendedEnv) (formal_arg, actual_arg, env));
 }
 
 /* *********************************************** */

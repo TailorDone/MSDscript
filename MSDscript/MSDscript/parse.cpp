@@ -269,27 +269,27 @@ TEST_CASE ("Parse"){
                                                                            NEW(FunExpr)("x", NEW(BoolExpr)(true)),
                                                                            NEW(CallExpr)(NEW(VarExpr)("f"), NEW(NumExpr)(5))))));
     //CHECK((parse_str("_fun (x) x*x (5)"))->equals(NEW(CallExpr)(NEW(FunExpr)("x", NEW(MultExpr)(NEW(VarExpr)("x"), NEW(VarExpr)("x"))), NEW(NumExpr)(5))));
-    CHECK_THROWS_WITH((parse_str("x"))->interp(), "No value for variable" );
-    CHECK_THROWS_WITH((parse_str("variable"))->interp(), "No value for variable" );
-    CHECK_THROWS_WITH((parse_str(""))->interp(), "Unable to process request" );
-    CHECK_THROWS_WITH((parse_str("b+31"))->interp(), "No value for variable" );
-    CHECK_THROWS_WITH((parse_str("3*t"))->interp(), "No value for variable" );
-    CHECK_THROWS_WITH((parse_str("_let x = t _in x+1"))->interp(), "No value for variable");
-    CHECK_THROWS_WITH((parse_str("_lot x = 3 _in x+1"))->interp(), "Unable to process keyword");
-    CHECK_THROWS_WITH((parse_str("_let x + 3 _in x+1"))->interp(), "equal expected");
-    CHECK_THROWS_WITH((parse_str("_let x = 3 _it x+1"))->interp(), "in expected");
-    CHECK_THROWS_WITH((parse_str("(x+4"))->interp(), "missing close parenthesis");
-    CHECK_THROWS_WITH((parse_str("3+(4+1"))->interp(), "missing close parenthesis");
-    CHECK_THROWS_WITH((parse_str("5=+7"))->interp(), "2nd equal sign expected");
-    CHECK_THROWS_WITH((parse_str("_if 1 _ten 2 _else 5"))->interp(), "then expected");
-    CHECK_THROWS_WITH((parse_str("_if 1 _then 2 _els 5"))->interp(), "else expected");
-    CHECK_THROWS_WITH((parse_str("_fun (x x-1"))->interp(),"missing close parenthesis");
-    CHECK_THROWS_WITH((parse_str("(_fun (x) 5) + 2"))->interp(), "addition of non-number");
-    CHECK_THROWS_WITH((parse_str("(_fun (x) 5) * 2"))->interp(), "multiplication of non-number");
+//    CHECK_THROWS_WITH((parse_str("x"))->interp(), "No value for variable" );
+//    CHECK_THROWS_WITH((parse_str("variable"))->interp(), "No value for variable" );
+//    CHECK_THROWS_WITH((parse_str(""))->interp(), "Unable to process request" );
+//    CHECK_THROWS_WITH((parse_str("b+31"))->interp(), "No value for variable" );
+//    CHECK_THROWS_WITH((parse_str("3*t"))->interp(), "No value for variable" );
+//    CHECK_THROWS_WITH((parse_str("_let x = t _in x+1"))->interp(), "No value for variable");
+//    CHECK_THROWS_WITH((parse_str("_lot x = 3 _in x+1"))->interp(), "Unable to process keyword");
+//    CHECK_THROWS_WITH((parse_str("_let x + 3 _in x+1"))->interp(), "equal expected");
+//    CHECK_THROWS_WITH((parse_str("_let x = 3 _it x+1"))->interp(), "in expected");
+//    CHECK_THROWS_WITH((parse_str("(x+4"))->interp(), "missing close parenthesis");
+//    CHECK_THROWS_WITH((parse_str("3+(4+1"))->interp(), "missing close parenthesis");
+//    CHECK_THROWS_WITH((parse_str("5=+7"))->interp(), "2nd equal sign expected");
+//    CHECK_THROWS_WITH((parse_str("_if 1 _ten 2 _else 5"))->interp(), "then expected");
+//    CHECK_THROWS_WITH((parse_str("_if 1 _then 2 _els 5"))->interp(), "else expected");
+//    CHECK_THROWS_WITH((parse_str("_fun (x x-1"))->interp(),"missing close parenthesis");
+//    CHECK_THROWS_WITH((parse_str("(_fun (x) 5) + 2"))->interp(), "addition of non-number");
+//    CHECK_THROWS_WITH((parse_str("(_fun (x) 5) * 2"))->interp(), "multiplication of non-number");
+//}
+//
+//TEST_CASE("Matthews PDF Quiz Parse"){
+//    CHECK((parse_str("(1+2)==(3+0)")->interp()->equals((NEW(BoolExpr)(true))->interp())));
+//    CHECK((parse_str("1+2==3+0")->interp()->equals((NEW(BoolExpr)(true))->interp())));
+//    CHECK_THROWS_WITH((parse_str("_true + _false"))->interp(),"addition of non-number");
 }
-
-TEST_CASE("Matthews PDF Quiz Parse"){
-    CHECK((parse_str("(1+2)==(3+0)")->interp()->equals((NEW(BoolExpr)(true))->interp())));
-    CHECK((parse_str("1+2==3+0")->interp()->equals((NEW(BoolExpr)(true))->interp())));
-    CHECK_THROWS_WITH((parse_str("_true + _false"))->interp(),"addition of non-number");
-    }

@@ -26,13 +26,13 @@ bool NumExpr::equals(PTR(Expr)other){
     }
 }
 
-PTR(Val) NumExpr::interp(){
+PTR(Val) NumExpr::interp(PTR(Env) env){
     return NEW(NumVal)(this->val);
 }
 
-PTR(Expr) NumExpr::subst(std::string name, PTR(Expr)replacement){
-    return THIS;
-}
+//PTR(Expr) NumExpr::subst(std::string name, PTR(Expr)replacement){
+//    return THIS;
+//}
 
 void NumExpr::print(std::ostream& output){
     output << this->val;
@@ -61,15 +61,15 @@ bool AddExpr::equals(PTR(Expr)other){
     }
 }
 
-PTR(Val) AddExpr::interp(){
-    return (this->lhs->interp()->add_to(this->rhs->interp()));
+PTR(Val) AddExpr::interp(PTR(Env) env){
+    return (this->lhs->interp(env)->add_to(this->rhs->interp(env)));
 }
 
-PTR(Expr) AddExpr::subst(std::string name, PTR(Expr)replacement){
-    PTR(Expr)new_lhs = lhs->subst(name, replacement);
-    PTR(Expr)new_rhs = rhs->subst(name, replacement);
-    return NEW(AddExpr)(new_lhs, new_rhs);
-}
+//PTR(Expr) AddExpr::subst(std::string name, PTR(Expr)replacement){
+//    PTR(Expr)new_lhs = lhs->subst(name, replacement);
+//    PTR(Expr)new_rhs = rhs->subst(name, replacement);
+//    return NEW(AddExpr)(new_lhs, new_rhs);
+//}
 
 void AddExpr::print(std::ostream& output){
     PTR(Expr)new_lhs = this->lhs;
@@ -120,15 +120,15 @@ bool MultExpr::equals(PTR(Expr)other){
     }
 }
 
-PTR(Val) MultExpr::interp(){
-    return (this->lhs->interp()->mult_to(this->rhs->interp()));
+PTR(Val) MultExpr::interp(PTR(Env) env){
+    return (this->lhs->interp(env)->mult_to(this->rhs->interp(env)));
 }
 
-PTR(Expr) MultExpr::subst(std::string name, PTR(Expr)replacement){
-    PTR(Expr)new_lhs = lhs->subst(name, replacement);
-    PTR(Expr)new_rhs = rhs->subst(name, replacement);
-    return NEW(MultExpr)(new_lhs, new_rhs);
-}
+//PTR(Expr) MultExpr::subst(std::string name, PTR(Expr)replacement){
+//    PTR(Expr)new_lhs = lhs->subst(name, replacement);
+//    PTR(Expr)new_rhs = rhs->subst(name, replacement);
+//    return NEW(MultExpr)(new_lhs, new_rhs);
+//}
 
 void MultExpr::print(std::ostream& output){
     PTR(Expr)new_lhs = this->lhs;
@@ -184,17 +184,17 @@ bool VarExpr::equals(PTR(Expr)other){
     }
 }
 
-PTR(Val) VarExpr::interp(){
-    throw std::runtime_error("No value for variable");
+PTR(Val) VarExpr::interp(PTR(Env) env){
+    return env->lookup(name);
 }
 
-PTR(Expr) VarExpr::subst(std::string name, PTR(Expr)replacement){
-    if(this->name == name){
-        return replacement;
-    } else {
-        return THIS;
-    }
-}
+//PTR(Expr) VarExpr::subst(std::string name, PTR(Expr)replacement){
+//    if(this->name == name){
+//        return replacement;
+//    } else {
+//        return THIS;
+//    }
+//}
 
 void VarExpr::print(std::ostream& output){
     output << this->name;
@@ -224,25 +224,23 @@ bool LetExpr::equals(PTR(Expr)other){
     }
 }
     
-PTR(Val) LetExpr::interp(){
-    std::string new_lhs = this->lhs;
-    PTR(Expr) new_rhs = this->rhs;
-    PTR(Expr) new_body = this->body;
-    PTR(Val) simp_rhs = new_rhs->interp();
-    return new_body->subst(new_lhs, simp_rhs->to_expr())->interp();
+PTR(Val) LetExpr::interp(PTR(Env) env){
+    PTR(Val) rhs_val = rhs->interp(env);
+    PTR(Env) new_env = NEW(ExtendedEnv)(lhs, rhs_val, env);
+    return body->interp(new_env);
 }
 
 //Always substitute RHS. Body changes iff the variable we are replacing and the bound variable are different
-PTR(Expr) LetExpr::subst(std::string string, PTR(Expr)replacement){
-    std::string new_lhs = this->lhs;
-    //Always substitute on the right, even if it doesn't replace anything
-    PTR(Expr)new_rhs = this->rhs->subst(string, replacement);
-    PTR(Expr)new_body = this->body;
-    if(new_lhs!=(string)){
-        new_body = new_body->subst(string, replacement);
-    }
-    return NEW(LetExpr) (new_lhs, new_rhs, new_body);
-}
+//PTR(Expr) LetExpr::subst(std::string string, PTR(Expr)replacement){
+//    std::string new_lhs = this->lhs;
+//    //Always substitute on the right, even if it doesn't replace anything
+//    PTR(Expr)new_rhs = this->rhs->subst(string, replacement);
+//    PTR(Expr)new_body = this->body;
+//    if(new_lhs!=(string)){
+//        new_body = new_body->subst(string, replacement);
+//    }
+//    return NEW(LetExpr) (new_lhs, new_rhs, new_body);
+//}
 
 void LetExpr::print(std::ostream& output){
     PTR(Expr)new_rhs = this->rhs;
@@ -326,13 +324,13 @@ bool BoolExpr::equals(PTR(Expr)other){
     }
 }
 
-PTR(Val) BoolExpr::interp(){
+PTR(Val) BoolExpr::interp(PTR(Env) env){
     return NEW(BoolVal)(this->val);
 }
 
-PTR(Expr) BoolExpr::subst(std::string name, PTR(Expr)replacement){
-    return THIS;
-}
+//PTR(Expr) BoolExpr::subst(std::string name, PTR(Expr)replacement){
+//    return THIS;
+//}
 
 void BoolExpr::print(std::ostream& output){
     if (this->val == true){
@@ -366,20 +364,20 @@ bool IfExpr::equals(PTR(Expr)other){
         return (this->test_part)->equals(other_num->test_part) && (this->then_part)->equals(other_num->then_part) && (this->else_part)->equals(other_num->else_part);
     }
 }
-PTR(Val) IfExpr::interp(){
-    if ((test_part->interp())->is_true()){
-        return then_part->interp();
+PTR(Val) IfExpr::interp(PTR(Env) env){
+    if ((test_part->interp(env))->is_true()){
+        return then_part->interp(env);
     } else {
-        return else_part->interp();
+        return else_part->interp(env);
     }
 }
-
-PTR(Expr) IfExpr::subst(std::string name, PTR(Expr)replacement){
-    PTR(Expr)new_test_part = test_part->subst(name, replacement);
-    PTR(Expr)new_then_part = then_part->subst(name, replacement);
-    PTR(Expr)new_else_part = else_part->subst(name, replacement);
-    return NEW(IfExpr)(new_test_part, new_then_part, new_else_part);
-}
+//
+//PTR(Expr) IfExpr::subst(std::string name, PTR(Expr)replacement){
+//    PTR(Expr)new_test_part = test_part->subst(name, replacement);
+//    PTR(Expr)new_then_part = then_part->subst(name, replacement);
+//    PTR(Expr)new_else_part = else_part->subst(name, replacement);
+//    return NEW(IfExpr)(new_test_part, new_then_part, new_else_part);
+//}
 
 void IfExpr::print(std::ostream& output){
     PTR(Expr)new_test_part = this->test_part;
@@ -462,16 +460,16 @@ bool EqExpr::equals(PTR(Expr)other){
     }
 }
 
-PTR(Val) EqExpr::interp(){
-    return NEW(BoolVal)((this->lhs->interp()->equals(this->rhs->interp())));
+PTR(Val) EqExpr::interp(PTR(Env) env){
+    return NEW(BoolVal)((this->lhs->interp(env)->equals(this->rhs->interp(env))));
 }
 
 
-PTR(Expr) EqExpr::subst(std::string name, PTR(Expr)replacement){
-    PTR(Expr)new_lhs = lhs->subst(name, replacement);
-    PTR(Expr)new_rhs = rhs->subst(name, replacement);
-    return NEW(EqExpr)(new_lhs, new_rhs);
-}
+//PTR(Expr) EqExpr::subst(std::string name, PTR(Expr)replacement){
+//    PTR(Expr)new_lhs = lhs->subst(name, replacement);
+//    PTR(Expr)new_rhs = rhs->subst(name, replacement);
+//    return NEW(EqExpr)(new_lhs, new_rhs);
+//}
 
 void EqExpr::print(std::ostream& output){
     PTR(Expr)new_lhs = this->lhs;
@@ -512,7 +510,7 @@ void EqExpr::pretty_print_at(std::ostream& output, print_mode_t type, long *posi
 /* *********************************************** */
 
 
-FunExpr::FunExpr(std::string formal_arg, PTR(Expr)body){
+FunExpr::FunExpr(std::string formal_arg, PTR(Expr) body){
     this->formal_arg = formal_arg;
     this->body = body;
 }
@@ -526,17 +524,17 @@ bool FunExpr::equals(PTR(Expr)other){
     }
 }
 
-PTR(Val) FunExpr::interp(){
-    return NEW(FunVal)(this->formal_arg, this->body); //MIGHT CHANGE
+PTR(Val) FunExpr::interp(PTR(Env) env){
+    return NEW(FunVal)(this->formal_arg, this->body, env);
 }
 
 
-PTR(Expr) FunExpr::subst(std::string name, PTR(Expr)replacement){
-    if (name == formal_arg){
-        return NEW(FunExpr)(formal_arg, body);
-    }
-    return NEW(FunExpr)(formal_arg, body->subst(name, replacement));
-}
+//PTR(Expr) FunExpr::subst(std::string name, PTR(Expr)replacement){
+//    if (name == formal_arg){
+//        return NEW(FunExpr)(formal_arg, body);
+//    }
+//    return NEW(FunExpr)(formal_arg, body->subst(name, replacement));
+//}
 
 void FunExpr::print(std::ostream& output){
     output << "(_fun (" << formal_arg << ") ";
@@ -569,15 +567,15 @@ bool CallExpr::equals(PTR(Expr)other){
     }
 }
 
-PTR(Val) CallExpr::interp(){
-    return to_be_called->interp()->call(actual_arg->interp());
+PTR(Val) CallExpr::interp(PTR(Env) env){
+    return to_be_called->interp(env)->call(actual_arg->interp(env));
 }
 
-PTR(Expr) CallExpr::subst(std::string name, PTR(Expr)replacement){
-    PTR(Expr)new_TBC = to_be_called->subst(name,replacement);
-    PTR(Expr)new_AA = actual_arg->subst(name, replacement);
-    return NEW(CallExpr)(new_TBC, new_AA);
-}
+//PTR(Expr) CallExpr::subst(std::string name, PTR(Expr)replacement){
+//    PTR(Expr)new_TBC = to_be_called->subst(name,replacement);
+//    PTR(Expr)new_AA = actual_arg->subst(name, replacement);
+//    return NEW(CallExpr)(new_TBC, new_AA);
+//}
 
 void CallExpr::print(std::ostream& output){
     this->to_be_called->print(output);
@@ -690,7 +688,7 @@ TEST_CASE("call equals"){
 }
 
 TEST_CASE("fun val equal"){
-    CHECK((NEW(FunVal)("y", NEW(NumExpr)(5)))->equals(NEW(FunVal)("y", NEW(NumExpr)(5)))==true);
+    CHECK((NEW(FunVal)("y", NEW(NumExpr)(5), Env::empty))->equals(NEW(FunVal)("y", NEW(NumExpr)(5), Env::empty))==true);
 }
 
 TEST_CASE ( "Object Comparisions" ){
@@ -705,42 +703,42 @@ TEST_CASE ( "Object Comparisions" ){
     CHECK((NEW(EqExpr)(NEW(NumExpr)(0), NEW(NumExpr)(3)))->equals(NEW(NumExpr)(5)) == false);
     CHECK((NEW(NumVal)(5))->equals(NEW(BoolVal)(true))==false);
     CHECK((NEW(BoolVal)(true))->equals(NEW(NumVal)(-5))==false);
-    CHECK((NEW(FunVal)("y", NEW(NumExpr)(5)))->equals(NEW(BoolVal)(true))==false);
+    CHECK((NEW(FunVal)("y", NEW(NumExpr)(5), Env::empty))->equals(NEW(BoolVal)(true))==false);
     CHECK((NEW(FunExpr)("x", NEW(NumExpr)(3)))->equals(NEW(NumExpr)(3)) == false);
     CHECK((NEW(CallExpr)(NEW(NumExpr)(4), NEW(NumExpr)(3)))->equals(NEW(NumExpr)(3)) == false);
 }
 
 TEST_CASE ( "Interpret" ){
-    CHECK((NEW(NumExpr)(5))->interp()->equals(NEW(NumVal)(5)));
-    CHECK((NEW(NumExpr)(-1))->interp()->equals(NEW(NumVal)(-1)));
-    CHECK((NEW(NumExpr)(0))->interp()->equals(NEW(NumVal)(0)));
-    CHECK((NEW(AddExpr)(NEW(NumExpr)(2),NEW(NumExpr)(4)))->interp()->equals(NEW(NumVal)(6)));
-    CHECK((NEW(AddExpr)(NEW(NumExpr)(-10),NEW(NumExpr)(7)))->interp()->equals(NEW(NumVal)(-3)));
-    CHECK((NEW(AddExpr)(NEW(NumExpr)(-31),NEW(NumExpr)(31)))->interp()->equals(NEW(NumVal)(0)));
-    CHECK((NEW(MultExpr)(NEW(NumExpr)(2),NEW(NumExpr)(4)))->interp()->equals(NEW(NumVal)(8)));
-    CHECK((NEW(MultExpr)(NEW(NumExpr)(-5),NEW(NumExpr)(-2)))->interp()->equals(NEW(NumVal)(10)));
-    CHECK((NEW(MultExpr)(NEW(NumExpr)(5),NEW(NumExpr)(-2)))->interp()->equals(NEW(NumVal)(-10)));
-    CHECK((NEW(LetExpr)("x", NEW(NumExpr)(5), NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(1))))->interp()->equals(NEW(NumVal)(6)));
-    CHECK((NEW(LetExpr)("x", NEW(AddExpr)( NEW(NumExpr)(5), NEW(NumExpr) (2)), NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(1))))->interp()->equals(NEW(NumVal)(8)));
-    CHECK((NEW(LetExpr)("x", NEW(NumExpr)(5), NEW(AddExpr)(NEW(LetExpr)("y", NEW(NumExpr)(3), NEW(AddExpr)(NEW(VarExpr)("y"), NEW(NumExpr)(2))), NEW(VarExpr)("x"))))->interp()->equals(NEW(NumVal)(10)));
-    CHECK((NEW(LetExpr)("x", NEW(NumExpr)(5), NEW(LetExpr)("x", NEW(AddExpr)( NEW(VarExpr)("x"), NEW(NumExpr)(2)), NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(1)))))->interp()->equals(NEW(NumVal)(8)));
-    CHECK((NEW(AddExpr)(NEW(MultExpr)(NEW(NumExpr)(5), NEW(LetExpr)("x", NEW(NumExpr)(5), NEW(VarExpr)("x"))), NEW(NumExpr) (1)))->interp()->equals(NEW(NumVal)(26)));
-    CHECK((NEW(MultExpr)( NEW(NumExpr)(5), NEW(AddExpr)(NEW(LetExpr)("x", NEW(NumExpr)(5), NEW(VarExpr)("x")), NEW(NumExpr) (1))))->interp()->equals(NEW(NumVal)(30)));
-    CHECK_THROWS_WITH((NEW(VarExpr)("x"))->interp(), "No value for variable" );
-    CHECK_THROWS_WITH((NEW(VarExpr)("&"))->interp(), "No value for variable" );
-    CHECK_THROWS_WITH((NEW(VarExpr)(""))->interp(), "No value for variable" );
-    CHECK_THROWS_WITH((NEW(AddExpr)(NEW(VarExpr)("b"),NEW(NumExpr)(31)))->interp(), "No value for variable" );
-    CHECK_THROWS_WITH((NEW(MultExpr)(NEW(NumExpr)(3),NEW(VarExpr)("a")))->interp(), "No value for variable" );
-    CHECK_THROWS_WITH((NEW(LetExpr)("x", NEW(VarExpr)("t"), NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(1))))->interp(), "No value for variable");
-    CHECK(((NEW(BoolExpr)(true))->interp()->equals(NEW(BoolVal)(true))));
-    CHECK(((NEW(BoolExpr)(false))->interp()->equals(NEW(BoolVal)(false))));
-    CHECK(((NEW(IfExpr)(NEW(BoolExpr)(true), NEW(NumExpr)(5), NEW(VarExpr)("x")))->interp()->equals(NEW(NumVal)(5))));
-    CHECK(((NEW(IfExpr)(NEW(BoolExpr)(false), NEW(NumExpr)(5), NEW(NumExpr)(6)))->interp()->equals(NEW(NumVal)(6))));
-    CHECK_THROWS_WITH((NEW(IfExpr)(NEW(BoolExpr)(false), NEW(NumExpr)(5), NEW(VarExpr)("x")))->interp(), "No value for variable");
-    CHECK((NEW(EqExpr)(NEW(AddExpr)(NEW(NumExpr)(5), NEW(NumExpr)(3)), NEW(AddExpr)(NEW(NumExpr)(3), NEW(NumExpr)(5))))->interp()->equals(NEW(BoolVal)(true)));
-    CHECK((NEW(EqExpr)(NEW(MultExpr)(NEW(NumExpr)(2), NEW(NumExpr)(3)), NEW(MultExpr)(NEW(NumExpr)(3), NEW(NumExpr)(2))))->interp()->equals(NEW(BoolVal)(true)));
-    CHECK((NEW(EqExpr)(NEW(MultExpr)(NEW(NumExpr)(2), NEW(NumExpr)(3)), NEW(NumExpr)(6)))->interp()->equals(NEW(BoolVal)(true)));
-    CHECK((NEW(EqExpr)(NEW(MultExpr)(NEW(NumExpr)(2), NEW(NumExpr)(3)), NEW(NumExpr)(5)))->interp()->equals(NEW(BoolVal)(false)));
+    CHECK((NEW(NumExpr)(5))->interp(Env::empty)->equals(NEW(NumVal)(5)));
+    CHECK((NEW(NumExpr)(-1))->interp(Env::empty)->equals(NEW(NumVal)(-1)));
+    CHECK((NEW(NumExpr)(0))->interp(Env::empty)->equals(NEW(NumVal)(0)));
+    CHECK((NEW(AddExpr)(NEW(NumExpr)(2),NEW(NumExpr)(4)))->interp(Env::empty)->equals(NEW(NumVal)(6)));
+    CHECK((NEW(AddExpr)(NEW(NumExpr)(-10),NEW(NumExpr)(7)))->interp(Env::empty)->equals(NEW(NumVal)(-3)));
+    CHECK((NEW(AddExpr)(NEW(NumExpr)(-31),NEW(NumExpr)(31)))->interp(Env::empty)->equals(NEW(NumVal)(0)));
+    CHECK((NEW(MultExpr)(NEW(NumExpr)(2),NEW(NumExpr)(4)))->interp(Env::empty)->equals(NEW(NumVal)(8)));
+    CHECK((NEW(MultExpr)(NEW(NumExpr)(-5),NEW(NumExpr)(-2)))->interp(Env::empty)->equals(NEW(NumVal)(10)));
+    CHECK((NEW(MultExpr)(NEW(NumExpr)(5),NEW(NumExpr)(-2)))->interp(Env::empty)->equals(NEW(NumVal)(-10)));
+    CHECK((NEW(LetExpr)("x", NEW(NumExpr)(5), NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(1))))->interp(Env::empty)->equals(NEW(NumVal)(6)));
+    CHECK((NEW(LetExpr)("x", NEW(AddExpr)( NEW(NumExpr)(5), NEW(NumExpr) (2)), NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(1))))->interp(Env::empty)->equals(NEW(NumVal)(8)));
+    CHECK((NEW(LetExpr)("x", NEW(NumExpr)(5), NEW(AddExpr)(NEW(LetExpr)("y", NEW(NumExpr)(3), NEW(AddExpr)(NEW(VarExpr)("y"), NEW(NumExpr)(2))), NEW(VarExpr)("x"))))->interp(Env::empty)->equals(NEW(NumVal)(10)));
+    CHECK((NEW(LetExpr)("x", NEW(NumExpr)(5), NEW(LetExpr)("x", NEW(AddExpr)( NEW(VarExpr)("x"), NEW(NumExpr)(2)), NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(1)))))->interp(Env::empty)->equals(NEW(NumVal)(8)));
+    CHECK((NEW(AddExpr)(NEW(MultExpr)(NEW(NumExpr)(5), NEW(LetExpr)("x", NEW(NumExpr)(5), NEW(VarExpr)("x"))), NEW(NumExpr) (1)))->interp(Env::empty)->equals(NEW(NumVal)(26)));
+    CHECK((NEW(MultExpr)( NEW(NumExpr)(5), NEW(AddExpr)(NEW(LetExpr)("x", NEW(NumExpr)(5), NEW(VarExpr)("x")), NEW(NumExpr) (1))))->interp(Env::empty)->equals(NEW(NumVal)(30)));
+    CHECK_THROWS_WITH((NEW(VarExpr)("x"))->interp(Env::empty), "free variable: x" );
+    CHECK_THROWS_WITH((NEW(VarExpr)("&"))->interp(Env::empty), "free variable: &" );
+    CHECK_THROWS_WITH((NEW(VarExpr)(""))->interp(Env::empty), "free variable: " );
+    CHECK_THROWS_WITH((NEW(AddExpr)(NEW(VarExpr)("b"),NEW(NumExpr)(31)))->interp(Env::empty), "free variable: b" );
+    CHECK_THROWS_WITH((NEW(MultExpr)(NEW(NumExpr)(3),NEW(VarExpr)("a")))->interp(Env::empty), "free variable: a" );
+    CHECK_THROWS_WITH((NEW(LetExpr)("x", NEW(VarExpr)("t"), NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(1))))->interp(Env::empty), "free variable: t");
+    CHECK(((NEW(BoolExpr)(true))->interp(Env::empty)->equals(NEW(BoolVal)(true))));
+    CHECK(((NEW(BoolExpr)(false))->interp(Env::empty)->equals(NEW(BoolVal)(false))));
+    CHECK(((NEW(IfExpr)(NEW(BoolExpr)(true), NEW(NumExpr)(5), NEW(VarExpr)("x")))->interp(Env::empty)->equals(NEW(NumVal)(5))));
+    CHECK(((NEW(IfExpr)(NEW(BoolExpr)(false), NEW(NumExpr)(5), NEW(NumExpr)(6)))->interp(Env::empty)->equals(NEW(NumVal)(6))));
+    CHECK_THROWS_WITH((NEW(IfExpr)(NEW(BoolExpr)(false), NEW(NumExpr)(5), NEW(VarExpr)("x")))->interp(Env::empty), "free variable: x");
+    CHECK((NEW(EqExpr)(NEW(AddExpr)(NEW(NumExpr)(5), NEW(NumExpr)(3)), NEW(AddExpr)(NEW(NumExpr)(3), NEW(NumExpr)(5))))->interp(Env::empty)->equals(NEW(BoolVal)(true)));
+    CHECK((NEW(EqExpr)(NEW(MultExpr)(NEW(NumExpr)(2), NEW(NumExpr)(3)), NEW(MultExpr)(NEW(NumExpr)(3), NEW(NumExpr)(2))))->interp(Env::empty)->equals(NEW(BoolVal)(true)));
+    CHECK((NEW(EqExpr)(NEW(MultExpr)(NEW(NumExpr)(2), NEW(NumExpr)(3)), NEW(NumExpr)(6)))->interp(Env::empty)->equals(NEW(BoolVal)(true)));
+    CHECK((NEW(EqExpr)(NEW(MultExpr)(NEW(NumExpr)(2), NEW(NumExpr)(3)), NEW(NumExpr)(5)))->interp(Env::empty)->equals(NEW(BoolVal)(false)));
     CHECK((NEW(EqExpr)(
                        NEW(LetExpr)("x",
                                    NEW(NumExpr)(5),
@@ -749,90 +747,90 @@ TEST_CASE ( "Interpret" ){
                                    NEW(NumExpr)(3),
                                    NEW(AddExpr) ( NEW(VarExpr)("x"), NEW(NumExpr)(5)))
                       ))
-                      ->interp()->equals(NEW(BoolVal)(true)));
+                      ->interp(Env::empty)->equals(NEW(BoolVal)(true)));
     CHECK((NEW(LetExpr)("x",
                 NEW(EqExpr)(NEW(NumExpr)(3), NEW(NumExpr)(4)),
                 NEW(VarExpr)("x")))
-          ->interp()->equals(NEW(BoolVal)(false)));
+          ->interp(Env::empty)->equals(NEW(BoolVal)(false)));
     CHECK((NEW(LetExpr)(("same"),
            NEW(EqExpr)(NEW(NumExpr)(1), NEW(NumExpr)(2)),
            NEW(IfExpr)(
                       NEW(EqExpr) (NEW(NumExpr)(1), NEW(NumExpr)(2)),
                       NEW(AddExpr)( NEW(BoolExpr)(false), NEW(NumExpr)(5)),
                       NEW(NumExpr)(88))
-           ))->interp()->equals(NEW(NumVal)(88)));
+           ))->interp(Env::empty)->equals(NEW(NumVal)(88)));
     CHECK_THROWS_WITH((NEW(IfExpr)(NEW(AddExpr)(NEW(NumExpr)(4), NEW(NumExpr)(1)),
                               NEW(AddExpr)(NEW(BoolExpr)(false), NEW(NumExpr)(5)),
-                              NEW(NumExpr)(3)))->interp(), "Test expression is not a boolean");
-    CHECK_THROWS_WITH((NEW(AddExpr)(NEW(NumExpr)(4), NEW(BoolExpr)(true)))->interp(), "addition of non-number");
-    CHECK_THROWS_WITH((NEW(MultExpr)(NEW(NumExpr)(-4), NEW(BoolExpr)(true)))->interp(), "multiplication of non-number");
-    CHECK_THROWS_WITH((NEW(AddExpr)(NEW(BoolExpr)(true), NEW(NumExpr)(5)))->interp(), "addition of non-number");
-    CHECK_THROWS_WITH((NEW(MultExpr)(NEW(BoolExpr)(false), NEW(NumExpr)(-5)))->interp(), "multiplication of non-number");
+                              NEW(NumExpr)(3)))->interp(Env::empty), "Test expression is not a boolean");
+    CHECK_THROWS_WITH((NEW(AddExpr)(NEW(NumExpr)(4), NEW(BoolExpr)(true)))->interp(Env::empty), "addition of non-number");
+    CHECK_THROWS_WITH((NEW(MultExpr)(NEW(NumExpr)(-4), NEW(BoolExpr)(true)))->interp(Env::empty), "multiplication of non-number");
+    CHECK_THROWS_WITH((NEW(AddExpr)(NEW(BoolExpr)(true), NEW(NumExpr)(5)))->interp(Env::empty), "addition of non-number");
+    CHECK_THROWS_WITH((NEW(MultExpr)(NEW(BoolExpr)(false), NEW(NumExpr)(-5)))->interp(Env::empty), "multiplication of non-number");
 }
 
-TEST_CASE ( "Substitution" ){
-    CHECK ((NEW(NumExpr)(1))->subst("a", NEW(NumExpr)(4))->equals(NEW(NumExpr)(1)) == true);
-    CHECK ((NEW(NumExpr)(1))->subst("a", NEW(NumExpr)(4))->equals(NEW(NumExpr)(4)) == false);
-    CHECK ((NEW(VarExpr)("a"))->subst("a", NEW(VarExpr)("c"))->equals(NEW(VarExpr)("c"))== true);
-    CHECK ((NEW(VarExpr)("a"))->subst("b", NEW(VarExpr)("c"))->equals(NEW(VarExpr)("a"))== true);
-    CHECK ((NEW(MultExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(7)))->subst("x", NEW(VarExpr)("y"))->equals(NEW(MultExpr)(NEW(VarExpr)("y"), NEW(NumExpr)(7)))==true);
-    CHECK ((NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(7)))->subst("x", NEW(VarExpr)("y"))->equals(NEW(AddExpr)(NEW(VarExpr)("y"), NEW(NumExpr)(7)))==true);
-    //Always substitue RHS. Body changes iff the variable we are replacing and the bound variable are different
-    //
-    //No Change
-    //_let x = 1
-    //_in x + 2 ->subst(x, y+3)
-    PTR(Expr)let1 = NEW(LetExpr)("x",
-                         NEW(NumExpr)(1),
-                         NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(2)));
-    CHECK ((let1)->subst("x", NEW(AddExpr)(NEW(VarExpr)("y"), NEW(NumExpr)(3)))->equals(let1));
-    //Only change RHS
-    //_let x = x
-    //_in x + 2 ->subst(x, 5)
-    //=
-    //_let x = 5
-    //_in x + 2
-    PTR(Expr)let2 = NEW(LetExpr)("x",
-                         NEW(VarExpr)("x"),
-                         NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(2)));
-    CHECK ((let2->subst("x", NEW(NumExpr)(5))
-           ->equals(NEW(LetExpr)("x",
-                            NEW(NumExpr)(5),
-                            NEW(AddExpr) (NEW(VarExpr)("x"), NEW(NumExpr)(2))))));
-    //Only change Body
-    //_let x = 8
-    //_in x+y-> subst("y", 9)
-    // =
-    //_let x = 8
-    //_in x+9
-    PTR(Expr)let3 = NEW(LetExpr) ("x",
-                          NEW(NumExpr)(8),
-                          NEW(AddExpr) (NEW(VarExpr)("x"), NEW(VarExpr)("y")));
-    CHECK ((let3-> subst("y", NEW(NumExpr)(9)))
-          ->equals(NEW(LetExpr) ("x",
-                            NEW(NumExpr)(8),
-                            NEW(AddExpr) (NEW(VarExpr)("x"), NEW(NumExpr)(9)))));
-    //Change RHS and Body
-    //_let x = y
-    //_in x+y-> subst("y", 9)
-    // =
-    //_let x = 9
-    //_in x+9
-    PTR(Expr)let4 = NEW(LetExpr) ("x",
-                          NEW(VarExpr) ("y"),
-                          NEW(AddExpr) (NEW(VarExpr)("x"), NEW(VarExpr)("y")));
-    CHECK ((let4-> subst("y", NEW(NumExpr)(9)))
-          ->equals(NEW(LetExpr) ("x",
-                            NEW(NumExpr)(9),
-                            NEW(AddExpr) (NEW(VarExpr)("x"), NEW(NumExpr)(9)))));
-    CHECK ((NEW(IfExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(5), NEW(NumExpr)(3)))->subst("x", NEW(VarExpr)("y"))->equals(NEW(IfExpr)(NEW(VarExpr)("y"), NEW(NumExpr)(5), NEW(NumExpr)(3))));
-    CHECK ((NEW(IfExpr)(NEW(NumExpr)(5), NEW(VarExpr)("x"), NEW(NumExpr)(3)))->subst("x", NEW(VarExpr)("y"))->equals(NEW(IfExpr)(NEW(NumExpr)(5), NEW(VarExpr)("y"), NEW(NumExpr)(3))));
-    CHECK ((NEW(IfExpr)(NEW(NumExpr)(5), NEW(NumExpr)(3), NEW(VarExpr)("x")))->subst("x", NEW(VarExpr)("y"))->equals(NEW(IfExpr)(NEW(NumExpr)(5), NEW(NumExpr)(3), NEW(VarExpr)("y"))));
-    CHECK ((NEW(BoolExpr)(true))->subst("y", NEW(NumExpr)(5))->equals(NEW(BoolExpr)(true)));
-    CHECK ((NEW(EqExpr)(NEW(AddExpr) (NEW(VarExpr)("x"), NEW(NumExpr)(3)), NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(3))))->subst("x", NEW(NumExpr)(4))->equals( NEW(EqExpr)(NEW(AddExpr) (NEW(NumExpr)(4), NEW(NumExpr)(3)), NEW(AddExpr)(NEW(NumExpr)(4), NEW(NumExpr)(3)))));
-    CHECK((NEW(FunExpr)("x", NEW(AddExpr)(NEW(NumExpr)(4), NEW(VarExpr)("x"))))->subst("x", NEW(VarExpr)("y"))->equals(NEW(FunExpr)("x", NEW(AddExpr)(NEW(NumExpr)(4), NEW(VarExpr)("x")))));
-    CHECK((NEW(CallExpr)(NEW(VarExpr)("x"), NEW(AddExpr)(NEW(NumExpr)(1), NEW(VarExpr)("x"))))->subst("x", NEW(NumExpr)(13))->equals(NEW(CallExpr)(NEW(NumExpr)(13), NEW(AddExpr)(NEW(NumExpr)(1), NEW(NumExpr)(13)))));
-}
+//TEST_CASE ( "Substitution" ){
+//    CHECK ((NEW(NumExpr)(1))->subst("a", NEW(NumExpr)(4))->equals(NEW(NumExpr)(1)) == true);
+//    CHECK ((NEW(NumExpr)(1))->subst("a", NEW(NumExpr)(4))->equals(NEW(NumExpr)(4)) == false);
+//    CHECK ((NEW(VarExpr)("a"))->subst("a", NEW(VarExpr)("c"))->equals(NEW(VarExpr)("c"))== true);
+//    CHECK ((NEW(VarExpr)("a"))->subst("b", NEW(VarExpr)("c"))->equals(NEW(VarExpr)("a"))== true);
+//    CHECK ((NEW(MultExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(7)))->subst("x", NEW(VarExpr)("y"))->equals(NEW(MultExpr)(NEW(VarExpr)("y"), NEW(NumExpr)(7)))==true);
+//    CHECK ((NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(7)))->subst("x", NEW(VarExpr)("y"))->equals(NEW(AddExpr)(NEW(VarExpr)("y"), NEW(NumExpr)(7)))==true);
+//    //Always substitue RHS. Body changes iff the variable we are replacing and the bound variable are different
+//    //
+//    //No Change
+//    //_let x = 1
+//    //_in x + 2 ->subst(x, y+3)
+//    PTR(Expr)let1 = NEW(LetExpr)("x",
+//                         NEW(NumExpr)(1),
+//                         NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(2)));
+//    CHECK ((let1)->subst("x", NEW(AddExpr)(NEW(VarExpr)("y"), NEW(NumExpr)(3)))->equals(let1));
+//    //Only change RHS
+//    //_let x = x
+//    //_in x + 2 ->subst(x, 5)
+//    //=
+//    //_let x = 5
+//    //_in x + 2
+//    PTR(Expr)let2 = NEW(LetExpr)("x",
+//                         NEW(VarExpr)("x"),
+//                         NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(2)));
+//    CHECK ((let2->subst("x", NEW(NumExpr)(5))
+//           ->equals(NEW(LetExpr)("x",
+//                            NEW(NumExpr)(5),
+//                            NEW(AddExpr) (NEW(VarExpr)("x"), NEW(NumExpr)(2))))));
+//    //Only change Body
+//    //_let x = 8
+//    //_in x+y-> subst("y", 9)
+//    // =
+//    //_let x = 8
+//    //_in x+9
+//    PTR(Expr)let3 = NEW(LetExpr) ("x",
+//                          NEW(NumExpr)(8),
+//                          NEW(AddExpr) (NEW(VarExpr)("x"), NEW(VarExpr)("y")));
+//    CHECK ((let3-> subst("y", NEW(NumExpr)(9)))
+//          ->equals(NEW(LetExpr) ("x",
+//                            NEW(NumExpr)(8),
+//                            NEW(AddExpr) (NEW(VarExpr)("x"), NEW(NumExpr)(9)))));
+//    //Change RHS and Body
+//    //_let x = y
+//    //_in x+y-> subst("y", 9)
+//    // =
+//    //_let x = 9
+//    //_in x+9
+//    PTR(Expr)let4 = NEW(LetExpr) ("x",
+//                          NEW(VarExpr) ("y"),
+//                          NEW(AddExpr) (NEW(VarExpr)("x"), NEW(VarExpr)("y")));
+//    CHECK ((let4-> subst("y", NEW(NumExpr)(9)))
+//          ->equals(NEW(LetExpr) ("x",
+//                            NEW(NumExpr)(9),
+//                            NEW(AddExpr) (NEW(VarExpr)("x"), NEW(NumExpr)(9)))));
+//    CHECK ((NEW(IfExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(5), NEW(NumExpr)(3)))->subst("x", NEW(VarExpr)("y"))->equals(NEW(IfExpr)(NEW(VarExpr)("y"), NEW(NumExpr)(5), NEW(NumExpr)(3))));
+//    CHECK ((NEW(IfExpr)(NEW(NumExpr)(5), NEW(VarExpr)("x"), NEW(NumExpr)(3)))->subst("x", NEW(VarExpr)("y"))->equals(NEW(IfExpr)(NEW(NumExpr)(5), NEW(VarExpr)("y"), NEW(NumExpr)(3))));
+//    CHECK ((NEW(IfExpr)(NEW(NumExpr)(5), NEW(NumExpr)(3), NEW(VarExpr)("x")))->subst("x", NEW(VarExpr)("y"))->equals(NEW(IfExpr)(NEW(NumExpr)(5), NEW(NumExpr)(3), NEW(VarExpr)("y"))));
+//    CHECK ((NEW(BoolExpr)(true))->subst("y", NEW(NumExpr)(5))->equals(NEW(BoolExpr)(true)));
+//    CHECK ((NEW(EqExpr)(NEW(AddExpr) (NEW(VarExpr)("x"), NEW(NumExpr)(3)), NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(3))))->subst("x", NEW(NumExpr)(4))->equals( NEW(EqExpr)(NEW(AddExpr) (NEW(NumExpr)(4), NEW(NumExpr)(3)), NEW(AddExpr)(NEW(NumExpr)(4), NEW(NumExpr)(3)))));
+//    CHECK((NEW(FunExpr)("x", NEW(AddExpr)(NEW(NumExpr)(4), NEW(VarExpr)("x"))))->subst("x", NEW(VarExpr)("y"))->equals(NEW(FunExpr)("x", NEW(AddExpr)(NEW(NumExpr)(4), NEW(VarExpr)("x")))));
+//    CHECK((NEW(CallExpr)(NEW(VarExpr)("x"), NEW(AddExpr)(NEW(NumExpr)(1), NEW(VarExpr)("x"))))->subst("x", NEW(NumExpr)(13))->equals(NEW(CallExpr)(NEW(NumExpr)(13), NEW(AddExpr)(NEW(NumExpr)(1), NEW(NumExpr)(13)))));
+//}
 
 TEST_CASE ( "Print" ){
     CHECK ((NEW(NumExpr)(5))->to_string() == "5");
@@ -972,10 +970,10 @@ TEST_CASE("IfExpr Pretty Print"){
 TEST_CASE("Matthews PDF Quiz"){
     CHECK((NEW(IfExpr)(NEW(EqExpr)(NEW(NumExpr)(1), NEW(NumExpr)(2)),
                       NEW(NumExpr)(5),
-                      NEW(NumExpr)(6)))->interp()->equals(NEW(NumVal)(6)));
-    CHECK((NEW(EqExpr)(NEW(NumExpr)(1), NEW(NumExpr)(2)))->interp()->equals(NEW(BoolVal)(false)));
-    CHECK((NEW(EqExpr)(NEW(NumExpr)(1), NEW(NumExpr)(1)))->interp()->equals(NEW(BoolVal)(true)));
-    CHECK((NEW(EqExpr)(NEW(AddExpr)(NEW(NumExpr)(1), NEW(NumExpr)(2)), NEW(AddExpr)(NEW(NumExpr)(3), NEW(NumExpr)(0))))->interp()->equals(NEW(BoolVal)(true)));
+                      NEW(NumExpr)(6)))->interp(Env::empty)->equals(NEW(NumVal)(6)));
+    CHECK((NEW(EqExpr)(NEW(NumExpr)(1), NEW(NumExpr)(2)))->interp(Env::empty)->equals(NEW(BoolVal)(false)));
+    CHECK((NEW(EqExpr)(NEW(NumExpr)(1), NEW(NumExpr)(1)))->interp(Env::empty)->equals(NEW(BoolVal)(true)));
+    CHECK((NEW(EqExpr)(NEW(AddExpr)(NEW(NumExpr)(1), NEW(NumExpr)(2)), NEW(AddExpr)(NEW(NumExpr)(3), NEW(NumExpr)(0))))->interp(Env::empty)->equals(NEW(BoolVal)(true)));
 }
 
 TEST_CASE("Nested HW Example"){
@@ -1008,16 +1006,16 @@ TEST_CASE("Nested HW Example"){
                                                  NEW(VarExpr)("factrl"),
                                                  NEW(VarExpr)("factrl")
                                                  ),
-                                    NEW(NumExpr)(10))))->interp()->equals(NEW(NumVal)(3628800)));
+                                    NEW(NumExpr)(10))))->interp(Env::empty)->equals(NEW(NumVal)(3628800)));
 }
 
 TEST_CASE("Val Tests"){
     CHECK_THROWS_WITH((NEW(BoolVal)(true))->call(NULL),"Calling not allowed on BoolVals");
     CHECK_THROWS_WITH((NEW(NumVal)(5))->call(NULL), "Calling not allowed on NumVals");
-    CHECK_THROWS_WITH((NEW(FunVal)("y", NEW(NumExpr)(5)))->is_true(), "Test expression is not a boolean");
-    CHECK((NEW(FunVal)("y", NEW(NumExpr)(5)))->to_string() == "(_fun (y) 5)");
-    CHECK((NEW(FunVal)("x",NEW(NumExpr)(3)))->call(NEW(NumVal)(7))->equals(NEW(NumVal)(3)));
-    CHECK((NEW(FunVal)("x",NEW(AddExpr)(NEW(NumExpr)(1),NEW(VarExpr)("x")))->call(NEW(NumVal)(3)))->equals(NEW(NumVal)(4)));
-    CHECK_THROWS_WITH((NEW(FunVal)("y", NEW(AddExpr)(NEW(NumExpr)(1), NEW(VarExpr)("x")))->call(NEW(NumVal)(3))), "No value for variable");
+    CHECK_THROWS_WITH((NEW(FunVal)("y", NEW(NumExpr)(5), Env::empty))->is_true(), "Test expression is not a boolean");
+    CHECK((NEW(FunVal)("y", NEW(NumExpr)(5), Env::empty))->to_string() == "(_fun (y) 5)");
+    CHECK((NEW(FunVal)("x",NEW(NumExpr)(3), Env::empty))->call(NEW(NumVal)(7))->equals(NEW(NumVal)(3)));
+    CHECK((NEW(FunVal)("x",NEW(AddExpr)(NEW(NumExpr)(1),NEW(VarExpr)("x")), Env::empty)->call(NEW(NumVal)(3)))->equals(NEW(NumVal)(4)));
+    CHECK_THROWS_WITH((NEW(FunVal)("y", NEW(AddExpr)(NEW(NumExpr)(1), NEW(VarExpr)("x")), Env::empty)->call(NEW(NumVal)(3))), "free variable: x");
 }
 
