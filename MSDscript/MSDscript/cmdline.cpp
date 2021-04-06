@@ -7,12 +7,6 @@
 
 #define CATCH_CONFIG_RUNNER
 #include "cmdline.hpp"
-#include "catch.h"
-#include "parse.hpp"
-#include "val.hpp"
-#include "env.hpp"
-#include "pointer.h"
-#include "step.hpp"
 
 
 void use_arguments(int argc, char *argv[]){

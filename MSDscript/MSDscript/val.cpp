@@ -51,6 +51,10 @@ PTR(Val) NumVal::call(PTR(Val) actual_arg){
     throw std::runtime_error("Calling not allowed on NumVals");
 }
 
+void NumVal::call_step(PTR(Val) actual_arg, PTR(Cont) rest){
+    throw std::runtime_error("Call_step not allowed on NumVals");
+}
+
 /* *********************************************** */
 BoolVal::BoolVal(bool val){
     this->val = val;
@@ -93,6 +97,10 @@ PTR(Val) BoolVal::call(PTR(Val) actual_arg){
     throw std::runtime_error("Calling not allowed on BoolVals");
 }
 
+void BoolVal::call_step(PTR(Val) actual_arg, PTR(Cont) rest){
+    throw std::runtime_error("Call_step not allowed on BoolVals");
+}
+
 /* *********************************************** */
 FunVal::FunVal(std::string formal_arg, PTR(Expr) body, PTR(Env) env){
     this->formal_arg = formal_arg;
@@ -133,6 +141,13 @@ bool FunVal::is_true(){
 
 PTR(Val) FunVal::call(PTR(Val) actual_arg){
     return body->interp(NEW(ExtendedEnv) (formal_arg, actual_arg, env));
+}
+
+void FunVal::call_step(PTR(Val) actual_arg, PTR(Cont) rest){
+    Step::mode = Step::interp_mode;
+    Step::expr = body;
+    Step::env = NEW(ExtendedEnv)(formal_arg, actual_arg, env);
+    Step::cont = rest;
 }
 
 /* *********************************************** */

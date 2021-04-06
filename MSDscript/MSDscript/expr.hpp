@@ -29,6 +29,7 @@ typedef enum {
 } print_mode_t;
 
 class Val;
+class Cont;
 
 CLASS(Expr) {
     

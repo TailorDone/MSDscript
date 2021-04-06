@@ -12,8 +12,12 @@
 #include <iostream>
 #include "pointer.h"
 #include "env.hpp"
+#include "cont.hpp"
+#include "expr.hpp"
 
 class Expr;
+class Cont;
+class Env;
 
 CLASS(Val){
 public:
@@ -26,6 +30,7 @@ public:
     virtual void print(std::ostream& outstream) = 0;
     virtual bool is_true() = 0;
     virtual PTR(Val) call(PTR(Val) actual_arg) = 0;
+    virtual void call_step(PTR(Val) actual_arg, PTR(Cont) rest) = 0;
     std::string to_string();
 };
 
@@ -41,6 +46,7 @@ public:
     void print (std::ostream& outstream);
     bool is_true();
     PTR(Val) call(PTR(Val) actual_arg);
+    void call_step(PTR(Val) actual_arg, PTR(Cont) rest);
 };
 
 class BoolVal: public Val {
@@ -55,6 +61,7 @@ public:
     void print (std::ostream& outstream);
     bool is_true();
     PTR(Val) call(PTR(Val) actual_arg);
+    void call_step(PTR(Val) actual_arg, PTR(Cont) rest);
 };
 
 class FunVal: public Val {
@@ -71,6 +78,7 @@ public:
     void print (std::ostream& outstream);
     bool is_true();
     PTR(Val) call(PTR(Val) actual_arg);
+    void call_step(PTR(Val) actual_arg, PTR(Cont) rest);
 };
 
 

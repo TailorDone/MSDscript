@@ -12,6 +12,12 @@
 #include <string>
 #include <iostream>
 #include "pointer.h"
+#include "catch.h"
+#include "parse.hpp"
+#include "val.hpp"
+#include "env.hpp"
+#include "pointer.h"
+#include "step.hpp"
 
 void use_arguments(int argc, char *argv[]);
 

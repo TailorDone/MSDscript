@@ -15,7 +15,7 @@
 #include "cont.hpp"
 
 class Expr;
-class Evn;
+class Env;
 class Val;
 class Cont;
 
@@ -34,5 +34,8 @@ static PTR(Cont) cont;
     
 static PTR(Val) interp_by_steps(PTR(Expr) e);
 };
+
+
+
 
 #endif /* step_hpp */

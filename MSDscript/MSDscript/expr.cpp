@@ -33,7 +33,6 @@ PTR(Val) NumExpr::interp(PTR(Env) env){
 void NumExpr::step_interp(){
     Step::mode = Step::continue_mode;
     Step::val = NEW(NumVal)(val);
-    Step::cont = Step::cont;
 }
 
 //PTR(Expr) NumExpr::subst(std::string name, PTR(Expr)replacement){
@@ -77,7 +76,6 @@ PTR(Val) AddExpr::interp(PTR(Env) env){
 void AddExpr::step_interp(){
     Step::mode = Step::interp_mode;
     Step::expr = lhs;
-    Step::env = Step::env;
     Step::cont = NEW(RightThenAddCont)(this->rhs, Step::env, Step::cont);
 }
 
@@ -147,7 +145,6 @@ PTR(Val) MultExpr::interp(PTR(Env) env){
 void MultExpr::step_interp(){
     Step::mode = Step::interp_mode;
     Step::expr = lhs;
-    Step::env = Step::env;
     Step::cont = NEW(RightThenMultCont)(this->rhs, Step::env, Step::cont);
 }
 
@@ -216,7 +213,8 @@ PTR(Val) VarExpr::interp(PTR(Env) env){
 }
 
 void VarExpr::step_interp(){
-    //TODO
+    Step::mode = Step::continue_mode;
+    Step::val = Step::env->lookup(name);
 }
 
 //PTR(Expr) VarExpr::subst(std::string name, PTR(Expr)replacement){
@@ -262,7 +260,9 @@ PTR(Val) LetExpr::interp(PTR(Env) env){
 }
 
 void LetExpr::step_interp(){
-    //TODO
+    Step::mode = Step::interp_mode;
+    Step::expr = rhs;
+    Step::cont = NEW(LetBodyCont)(lhs, body, Step::env, Step::cont);
 }
 
 //Always substitute RHS. Body changes iff the variable we are replacing and the bound variable are different
@@ -364,7 +364,8 @@ PTR(Val) BoolExpr::interp(PTR(Env) env){
 }
 
 void BoolExpr::step_interp(){
-    //TODO
+    Step::mode = Step::continue_mode;
+    Step::val = NEW(BoolVal)(val);
 }
 
 //PTR(Expr) BoolExpr::subst(std::string name, PTR(Expr)replacement){
@@ -412,7 +413,9 @@ PTR(Val) IfExpr::interp(PTR(Env) env){
 }
 
 void IfExpr::step_interp(){
-    //TODO
+    Step::mode = Step::interp_mode;
+    Step::expr = test_part;
+    Step::cont = NEW(IfBranchCont)(then_part, else_part, Step::env, Step::cont);
 }
 
 //
@@ -509,7 +512,9 @@ PTR(Val) EqExpr::interp(PTR(Env) env){
 }
 
 void EqExpr::step_interp(){
-    //TODO
+    Step::mode = Step::interp_mode;
+    Step::expr = lhs;
+    Step::cont = NEW(RightThenEqCont)(rhs, Step::env, Step::cont);
 }
 
 //PTR(Expr) EqExpr::subst(std::string name, PTR(Expr)replacement){
@@ -576,7 +581,9 @@ PTR(Val) FunExpr::interp(PTR(Env) env){
 }
 
 void FunExpr::step_interp(){
-    //TODO
+    Step::mode = Step::continue_mode;
+    Step::val = NEW(FunVal)(this->formal_arg, this->body, Step::env);
+    Step::env = NEW(ExtendedEnv)(formal_arg, Step::val, Step::env);
 }
 
 //PTR(Expr) FunExpr::subst(std::string name, PTR(Expr)replacement){
@@ -618,11 +625,15 @@ bool CallExpr::equals(PTR(Expr)other){
 }
 
 PTR(Val) CallExpr::interp(PTR(Env) env){
-    return to_be_called->interp(env)->call(actual_arg->interp(env));
+    PTR(Val) to_be_called_val = to_be_called->interp(env);
+    PTR(Val) actual_arg_val = actual_arg->interp(env);
+    return to_be_called_val->call(actual_arg_val);
 }
 
 void CallExpr::step_interp(){
-    //TODO
+    Step::mode = Step::interp_mode;
+    Step::expr = to_be_called;
+    Step::cont = NEW(ArgThenCallCont)(actual_arg, Step::env, Step::cont);
 }
 
 //PTR(Expr) CallExpr::subst(std::string name, PTR(Expr)replacement){
