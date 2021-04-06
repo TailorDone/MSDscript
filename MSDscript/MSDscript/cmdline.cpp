@@ -12,6 +12,7 @@
 #include "val.hpp"
 #include "env.hpp"
 #include "pointer.h"
+#include "step.hpp"
 
 
 void use_arguments(int argc, char *argv[]){
@@ -46,6 +47,9 @@ void use_arguments(int argc, char *argv[]){
         } else if (arg == "--pretty-print"){
             PTR(Expr) user_input = parse_expr(std::cin);
             std::cout << user_input->to_string_pretty();
+        } else if (arg == "--step"){
+            PTR(Expr) user_input = parse_expr(std::cin);
+            std::cout << Step::interp_by_steps(user_input)->to_string();
         } else {
             std::cerr << "Invalid Argument\n";
             exit(1);

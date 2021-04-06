@@ -14,6 +14,9 @@
 #include <sstream>
 #include "pointer.h"
 #include "env.hpp"
+#include "val.hpp"
+#include "step.hpp"
+#include "cont.hpp"
 
 typedef enum {
     print_group_none,
@@ -44,6 +47,8 @@ public:
     virtual void pretty_print(std::ostream& output) = 0;
     //Prints an expression based on the given mode and output stream position
     virtual void pretty_print_at(std::ostream& output, print_mode_t type, long *position) = 0;
+    //Step interp
+    virtual void step_interp() = 0;
     //Writes an expression as a string
     std::string to_string();
     //Writes an expression as a prettier string
@@ -54,13 +59,14 @@ class NumExpr: public Expr {
 public:
     int val;
     
-    NumExpr(int val);
+    NumExpr(int num);
     bool equals(PTR(Expr)other);
     PTR(Val) interp(PTR(Env) env);
     //PTR(Expr) subst(std::string name, PTR(Expr)replacement);
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
+    void step_interp();
 };
 
 class AddExpr: public Expr{
@@ -75,6 +81,7 @@ public:
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
+    void step_interp();
 };
 
 class MultExpr: public Expr{
@@ -89,6 +96,7 @@ public:
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
+    void step_interp();
 };
 
 class VarExpr: public Expr{
@@ -102,6 +110,7 @@ public:
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
+    void step_interp();
 };
 
 class LetExpr: public Expr{
@@ -117,6 +126,7 @@ public:
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
+    void step_interp();
 };
 
 class BoolExpr: public Expr{
@@ -130,6 +140,7 @@ public:
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
+    void step_interp();
 };
 
 class IfExpr : public Expr{
@@ -145,6 +156,7 @@ public:
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
+    void step_interp();
 };
 
 class EqExpr : public Expr{
@@ -159,6 +171,7 @@ public:
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
+    void step_interp();
 };
 
 class FunExpr : public Expr{
@@ -173,6 +186,7 @@ public:
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
+    void step_interp();
 };
 
 class CallExpr : public Expr{
@@ -187,6 +201,7 @@ public:
     void print(std::ostream& output);
     void pretty_print(std::ostream& output);
     void pretty_print_at(std::ostream& output, print_mode_t type, long *position);
+    void step_interp();
 };
 
 #endif /* expr_hpp */
