@@ -35,10 +35,6 @@ void NumExpr::step_interp(){
     Step::val = NEW(NumVal)(val);
 }
 
-//PTR(Expr) NumExpr::subst(std::string name, PTR(Expr)replacement){
-//    return THIS;
-//}
-
 void NumExpr::print(std::ostream& output){
     output << this->val;
 }
@@ -72,18 +68,11 @@ PTR(Val) AddExpr::interp(PTR(Env) env){
     return lhs_val->add_to(rhs_val);
 }
 
-
 void AddExpr::step_interp(){
     Step::mode = Step::interp_mode;
     Step::expr = lhs;
     Step::cont = NEW(RightThenAddCont)(this->rhs, Step::env, Step::cont);
 }
-
-//PTR(Expr) AddExpr::subst(std::string name, PTR(Expr)replacement){
-//    PTR(Expr)new_lhs = lhs->subst(name, replacement);
-//    PTR(Expr)new_rhs = rhs->subst(name, replacement);
-//    return NEW(AddExpr)(new_lhs, new_rhs);
-//}
 
 void AddExpr::print(std::ostream& output){
     PTR(Expr)new_lhs = this->lhs;
@@ -119,7 +108,6 @@ void AddExpr::pretty_print_at(std::ostream& output, print_mode_t type, long *pos
     }
 }
 
-
 /* *********************************************** */
 
 MultExpr::MultExpr(PTR(Expr)lhs, PTR(Expr)rhs){
@@ -147,12 +135,6 @@ void MultExpr::step_interp(){
     Step::expr = lhs;
     Step::cont = NEW(RightThenMultCont)(this->rhs, Step::env, Step::cont);
 }
-
-//PTR(Expr) MultExpr::subst(std::string name, PTR(Expr)replacement){
-//    PTR(Expr)new_lhs = lhs->subst(name, replacement);
-//    PTR(Expr)new_rhs = rhs->subst(name, replacement);
-//    return NEW(MultExpr)(new_lhs, new_rhs);
-//}
 
 void MultExpr::print(std::ostream& output){
     PTR(Expr)new_lhs = this->lhs;
@@ -217,14 +199,6 @@ void VarExpr::step_interp(){
     Step::val = Step::env->lookup(name);
 }
 
-//PTR(Expr) VarExpr::subst(std::string name, PTR(Expr)replacement){
-//    if(this->name == name){
-//        return replacement;
-//    } else {
-//        return THIS;
-//    }
-//}
-
 void VarExpr::print(std::ostream& output){
     output << this->name;
 }
@@ -264,18 +238,6 @@ void LetExpr::step_interp(){
     Step::expr = rhs;
     Step::cont = NEW(LetBodyCont)(lhs, body, Step::env, Step::cont);
 }
-
-//Always substitute RHS. Body changes iff the variable we are replacing and the bound variable are different
-//PTR(Expr) LetExpr::subst(std::string string, PTR(Expr)replacement){
-//    std::string new_lhs = this->lhs;
-//    //Always substitute on the right, even if it doesn't replace anything
-//    PTR(Expr)new_rhs = this->rhs->subst(string, replacement);
-//    PTR(Expr)new_body = this->body;
-//    if(new_lhs!=(string)){
-//        new_body = new_body->subst(string, replacement);
-//    }
-//    return NEW(LetExpr) (new_lhs, new_rhs, new_body);
-//}
 
 void LetExpr::print(std::ostream& output){
     PTR(Expr)new_rhs = this->rhs;
@@ -368,10 +330,6 @@ void BoolExpr::step_interp(){
     Step::val = NEW(BoolVal)(val);
 }
 
-//PTR(Expr) BoolExpr::subst(std::string name, PTR(Expr)replacement){
-//    return THIS;
-//}
-
 void BoolExpr::print(std::ostream& output){
     if (this->val == true){
         output << "_true";
@@ -417,14 +375,6 @@ void IfExpr::step_interp(){
     Step::expr = test_part;
     Step::cont = NEW(IfBranchCont)(then_part, else_part, Step::env, Step::cont);
 }
-
-//
-//PTR(Expr) IfExpr::subst(std::string name, PTR(Expr)replacement){
-//    PTR(Expr)new_test_part = test_part->subst(name, replacement);
-//    PTR(Expr)new_then_part = then_part->subst(name, replacement);
-//    PTR(Expr)new_else_part = else_part->subst(name, replacement);
-//    return NEW(IfExpr)(new_test_part, new_then_part, new_else_part);
-//}
 
 void IfExpr::print(std::ostream& output){
     PTR(Expr)new_test_part = this->test_part;
@@ -517,12 +467,6 @@ void EqExpr::step_interp(){
     Step::cont = NEW(RightThenEqCont)(rhs, Step::env, Step::cont);
 }
 
-//PTR(Expr) EqExpr::subst(std::string name, PTR(Expr)replacement){
-//    PTR(Expr)new_lhs = lhs->subst(name, replacement);
-//    PTR(Expr)new_rhs = rhs->subst(name, replacement);
-//    return NEW(EqExpr)(new_lhs, new_rhs);
-//}
-
 void EqExpr::print(std::ostream& output){
     PTR(Expr)new_lhs = this->lhs;
     PTR(Expr)new_rhs = this->rhs;
@@ -586,13 +530,6 @@ void FunExpr::step_interp(){
     Step::env = NEW(ExtendedEnv)(formal_arg, Step::val, Step::env);
 }
 
-//PTR(Expr) FunExpr::subst(std::string name, PTR(Expr)replacement){
-//    if (name == formal_arg){
-//        return NEW(FunExpr)(formal_arg, body);
-//    }
-//    return NEW(FunExpr)(formal_arg, body->subst(name, replacement));
-//}
-
 void FunExpr::print(std::ostream& output){
     output << "(_fun (" << formal_arg << ") ";
         this->body->print(output);
@@ -635,12 +572,6 @@ void CallExpr::step_interp(){
     Step::expr = to_be_called;
     Step::cont = NEW(ArgThenCallCont)(actual_arg, Step::env, Step::cont);
 }
-
-//PTR(Expr) CallExpr::subst(std::string name, PTR(Expr)replacement){
-//    PTR(Expr)new_TBC = to_be_called->subst(name,replacement);
-//    PTR(Expr)new_AA = actual_arg->subst(name, replacement);
-//    return NEW(CallExpr)(new_TBC, new_AA);
-//}
 
 void CallExpr::print(std::ostream& output){
     this->to_be_called->print(output);
@@ -833,70 +764,6 @@ TEST_CASE ( "Interpret" ){
     CHECK_THROWS_WITH((NEW(MultExpr)(NEW(BoolExpr)(false), NEW(NumExpr)(-5)))->interp(Env::empty), "multiplication of non-number");
 }
 
-//TEST_CASE ( "Substitution" ){
-//    CHECK ((NEW(NumExpr)(1))->subst("a", NEW(NumExpr)(4))->equals(NEW(NumExpr)(1)) == true);
-//    CHECK ((NEW(NumExpr)(1))->subst("a", NEW(NumExpr)(4))->equals(NEW(NumExpr)(4)) == false);
-//    CHECK ((NEW(VarExpr)("a"))->subst("a", NEW(VarExpr)("c"))->equals(NEW(VarExpr)("c"))== true);
-//    CHECK ((NEW(VarExpr)("a"))->subst("b", NEW(VarExpr)("c"))->equals(NEW(VarExpr)("a"))== true);
-//    CHECK ((NEW(MultExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(7)))->subst("x", NEW(VarExpr)("y"))->equals(NEW(MultExpr)(NEW(VarExpr)("y"), NEW(NumExpr)(7)))==true);
-//    CHECK ((NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(7)))->subst("x", NEW(VarExpr)("y"))->equals(NEW(AddExpr)(NEW(VarExpr)("y"), NEW(NumExpr)(7)))==true);
-//    //Always substitue RHS. Body changes iff the variable we are replacing and the bound variable are different
-//    //
-//    //No Change
-//    //_let x = 1
-//    //_in x + 2 ->subst(x, y+3)
-//    PTR(Expr)let1 = NEW(LetExpr)("x",
-//                         NEW(NumExpr)(1),
-//                         NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(2)));
-//    CHECK ((let1)->subst("x", NEW(AddExpr)(NEW(VarExpr)("y"), NEW(NumExpr)(3)))->equals(let1));
-//    //Only change RHS
-//    //_let x = x
-//    //_in x + 2 ->subst(x, 5)
-//    //=
-//    //_let x = 5
-//    //_in x + 2
-//    PTR(Expr)let2 = NEW(LetExpr)("x",
-//                         NEW(VarExpr)("x"),
-//                         NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(2)));
-//    CHECK ((let2->subst("x", NEW(NumExpr)(5))
-//           ->equals(NEW(LetExpr)("x",
-//                            NEW(NumExpr)(5),
-//                            NEW(AddExpr) (NEW(VarExpr)("x"), NEW(NumExpr)(2))))));
-//    //Only change Body
-//    //_let x = 8
-//    //_in x+y-> subst("y", 9)
-//    // =
-//    //_let x = 8
-//    //_in x+9
-//    PTR(Expr)let3 = NEW(LetExpr) ("x",
-//                          NEW(NumExpr)(8),
-//                          NEW(AddExpr) (NEW(VarExpr)("x"), NEW(VarExpr)("y")));
-//    CHECK ((let3-> subst("y", NEW(NumExpr)(9)))
-//          ->equals(NEW(LetExpr) ("x",
-//                            NEW(NumExpr)(8),
-//                            NEW(AddExpr) (NEW(VarExpr)("x"), NEW(NumExpr)(9)))));
-//    //Change RHS and Body
-//    //_let x = y
-//    //_in x+y-> subst("y", 9)
-//    // =
-//    //_let x = 9
-//    //_in x+9
-//    PTR(Expr)let4 = NEW(LetExpr) ("x",
-//                          NEW(VarExpr) ("y"),
-//                          NEW(AddExpr) (NEW(VarExpr)("x"), NEW(VarExpr)("y")));
-//    CHECK ((let4-> subst("y", NEW(NumExpr)(9)))
-//          ->equals(NEW(LetExpr) ("x",
-//                            NEW(NumExpr)(9),
-//                            NEW(AddExpr) (NEW(VarExpr)("x"), NEW(NumExpr)(9)))));
-//    CHECK ((NEW(IfExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(5), NEW(NumExpr)(3)))->subst("x", NEW(VarExpr)("y"))->equals(NEW(IfExpr)(NEW(VarExpr)("y"), NEW(NumExpr)(5), NEW(NumExpr)(3))));
-//    CHECK ((NEW(IfExpr)(NEW(NumExpr)(5), NEW(VarExpr)("x"), NEW(NumExpr)(3)))->subst("x", NEW(VarExpr)("y"))->equals(NEW(IfExpr)(NEW(NumExpr)(5), NEW(VarExpr)("y"), NEW(NumExpr)(3))));
-//    CHECK ((NEW(IfExpr)(NEW(NumExpr)(5), NEW(NumExpr)(3), NEW(VarExpr)("x")))->subst("x", NEW(VarExpr)("y"))->equals(NEW(IfExpr)(NEW(NumExpr)(5), NEW(NumExpr)(3), NEW(VarExpr)("y"))));
-//    CHECK ((NEW(BoolExpr)(true))->subst("y", NEW(NumExpr)(5))->equals(NEW(BoolExpr)(true)));
-//    CHECK ((NEW(EqExpr)(NEW(AddExpr) (NEW(VarExpr)("x"), NEW(NumExpr)(3)), NEW(AddExpr)(NEW(VarExpr)("x"), NEW(NumExpr)(3))))->subst("x", NEW(NumExpr)(4))->equals( NEW(EqExpr)(NEW(AddExpr) (NEW(NumExpr)(4), NEW(NumExpr)(3)), NEW(AddExpr)(NEW(NumExpr)(4), NEW(NumExpr)(3)))));
-//    CHECK((NEW(FunExpr)("x", NEW(AddExpr)(NEW(NumExpr)(4), NEW(VarExpr)("x"))))->subst("x", NEW(VarExpr)("y"))->equals(NEW(FunExpr)("x", NEW(AddExpr)(NEW(NumExpr)(4), NEW(VarExpr)("x")))));
-//    CHECK((NEW(CallExpr)(NEW(VarExpr)("x"), NEW(AddExpr)(NEW(NumExpr)(1), NEW(VarExpr)("x"))))->subst("x", NEW(NumExpr)(13))->equals(NEW(CallExpr)(NEW(NumExpr)(13), NEW(AddExpr)(NEW(NumExpr)(1), NEW(NumExpr)(13)))));
-//}
-
 TEST_CASE ( "Print" ){
     CHECK ((NEW(NumExpr)(5))->to_string() == "5");
     CHECK ((NEW(VarExpr)("x"))->to_string() == "x");
@@ -1080,7 +947,5 @@ TEST_CASE("Val Tests"){
     CHECK_THROWS_WITH((NEW(FunVal)("y", NEW(NumExpr)(5), Env::empty))->is_true(), "Test expression is not a boolean");
     CHECK((NEW(FunVal)("y", NEW(NumExpr)(5), Env::empty))->to_string() == "(_fun (y) 5)");
     CHECK((NEW(FunVal)("x",NEW(NumExpr)(3), Env::empty))->call(NEW(NumVal)(7))->equals(NEW(NumVal)(3)));
-//    CHECK((NEW(FunVal)("x",NEW(AddExpr)(NEW(NumExpr)(1),NEW(VarExpr)("x")), Env::empty)->call(NEW(NumVal)(3)))->equals(NEW(NumVal)(4)));
-//    CHECK_THROWS_WITH((NEW(FunVal)("y", NEW(AddExpr)(NEW(NumExpr)(1), NEW(VarExpr)("x")), Env::empty)->call(NEW(NumVal)(3))), "free variable: x");
 }
 
