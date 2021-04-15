@@ -31,8 +31,8 @@
     <ul>
     <li><i>cmake .</i> <br>Generates a Makefile in the current directory</li>
     <li><i>make</i> <br>Installs the MSDscript executable and MSDscriptLib library</li>
-    <li>The program can be ran from the command line in the directory where the executable is located by running the following command: ./MSDscript</li>
-    <li> The program can also be ran as a library using libMSDlibrary.a</li>
+    <li>The program can be ran from the command line in the directory where the executable is located by running the following command: <i>./MSDscript</i></li>
+    <li>The program can also be ran as a library using libMSDlibrary.a via the commandline and the following command:<br><i>$ c++ -o project_name your_project.cpp libMSDlibrary.a</i></li>    
   </ul>
 </p>
 
