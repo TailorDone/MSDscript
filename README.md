@@ -38,7 +38,7 @@
 
 ## User Guide: <a name = "user"></a>
 <p>
-MSDscript can parse user input and interpret a variety of expressions.
+MSDscript can parse user input and interpret a variety of expressions. 
 <ul>
       <li>Numerical Expressions</li>
         <ul>
@@ -111,6 +111,7 @@ MSDscript can parse user input and interpret a variety of expressions.
           <li>Errors:</li>
           <ul>
             <li>2 - 3</li>
+            <li>Subtraction will result in the following error: "Invalid input for an expression"</li>
           </ul>
         </ul>
       <li>Multiplication Expressions</li>
@@ -127,6 +128,7 @@ MSDscript can parse user input and interpret a variety of expressions.
           <li>Errors:</li>
           <ul>
             <li>2 / 3</li>
+            <li>Division will result in the following error: "Invalid input for an expression"</li>
           </ul>
         </ul>
       <li>Let Expressions</li> 
@@ -134,6 +136,7 @@ MSDscript can parse user input and interpret a variety of expressions.
           <li>Format:</li>
             <ul>
               <li> MSDscript can interpret Let Expressions in the following format _let (variable) = (expression) _in (expression) </li>
+              <li> _let (variable) = (expression) assigns a variable to an expression. This assigned expression is then substituted into the expression found after _in.</li>
             </ul>
           <li>Examples:</li>
             <ul>
@@ -142,8 +145,11 @@ MSDscript can parse user input and interpret a variety of expressions.
           <li>Errors:</li>
           <ul>
              <li> let x = 5 _in x + 2 </li>
+             <li> A _ must precede let or the following error will occur: "Invalid input for an expression" or "_let expected" if used as an inner expression
              <li> _let x = 5 in x + 2 </li>
+             <li> A _ must precede in or the following error will occur: "_in expected"</li>
              <li> _let x 5 _in x + 2 </li>
+            <li> A = must follow the variable for proper assignment in or the following error will occur: "equal expected"</li>
           </ul>
         </ul>
       <li>If/Else Expressions</li>
@@ -155,52 +161,81 @@ MSDscript can parse user input and interpret a variety of expressions.
           <li>Examples:</li>
             <ul>
               <li> _if _false _then 5 _else 3 </li>
+              <li> This will result in leading to the else branch and will return 3 after interpretation</li>
               <li> _if 6 == 6 _then 5 _else 3 </li>
-              <li> _if 6 == 1 _then 5 _else 3 </li>
+              <li> This will result in leading to the if branch and will return 5 after interpretation</li>
+              <li> _if 6 == _true _then 5 _else 3 </li>
+              <li> Comparing a number to a boolean will always result in _false, which would be the _else branch, and will return a 3 after interpretation</li>
            </ul>
           <li>Errors:</li>
           <ul>
             <li> _if 2 _then 5 _else 3 </li>
+            <li> A boolean expression must be after the _if. A non-boolean after _if will result in the error: "Test expression is not a boolean"
             <li> if _true _then 5 _else 3 </li>
+            <li> A _ must precede if or the following error will occur: "Invalid input for an expression" or "_in expected" if used as an inner expression
             <li> _if _true then 5 _else 3 </li>
+            <li> A _ must precede then or the following error will occur: "_then expected"</li>
             <li> _if _true _then 5 else 3 </li>
+            <li> A _ must precede else or the following error will occur: "_else expected"</li>
           </ul>
         </ul>
       <li>Equivalence Expressions</li>
         <ul>
           <li>Format:</li>
             <ul>
-              <li> MSDscript can interpret equivalence statements using == and return a boolean. MSDscript cannot interpret equivalence statments involving variables </li>
+              <li> MSDscript can interpret equivalence statements using == and return a boolean. The == operation can work on any kinds of values, and is allowed to compare a boolean to a number, but only a number expression can be equivalent with a number expression, and only a boolean expression can be equivalent to a number expression. MSDscript can interpret equivalence statments involving variables if the variable have been assigned a value. </li>
             </ul>
           <li>Examples:</li>
             <ul>
               <li> 6 == 6</li>
-              <li> _true == _true </li>
-              <li> 1 == 2 </li>
+              <li> This example compares a number to a number and would interp to _true </li>
+              <li> _true == _false </li>
+              <li> This example compares a boolean to a boolean and would interp to _false </li>
+              <li> 1 == _true </li>
+              <li> This example compares a number to a boolean, which will always interp to _false </li>
+              <li> _let x = 5 _in x == x </li>
+              <li> This example will interp to _true </li>
            </ul>
           <li>Errors:</li>
           <ul>
             <li> 6 = 6 </li>
+            <li> This will result in the following error: "2nd equal sign expected"</li>
             <li> x == y </li>
+            <li> Since x and y have not been defined at this point, this will result in the following error: "free variable: x"</li>
           </ul>
         </ul>
       <li>Function Expressions</li>
         <ul>
           <li>Format:</li>
             <ul>
-              <li> MSDscript can interpret Functions in the following format _fun (variable) (expression)  </li>
+              <li> MSDscript can interpret Functions in the following format _fun ((variable)) (expression)  </li>
             </ul>
           <li>Examples:</li>
             <ul>
               <li> _fun (x) x * 2</li>
+              <li> This is similar to f(x) = x*2 </li>
            </ul>
           <li>Errors:</li>
           <ul>
+            <li> fun (x) x * 2</li>
+            <li> _ must precede fun and will result in the following error: "Invalid input for an expression" </li>
+            <li> _fun x x * 2</li>
+            <li> the variable argument after _fun must be surrounded by parenthesis and will result in the following error: "Invalid input for an expression"</li>
           </ul>
         </ul>
       <li>Call Expressions</li>
         <ul>
-          <li>
+          <li> MSDscript can use call expressions in conjunction with function expressions to pass a value into a function.</li>
+           <li>Examples:</li>
+            <ul>
+              <li> (_fun (x) x * 2)(3)</li>
+              <li> This will pass 3 in for x and result in 6 after interpretation </li>
+           </ul>
+          <li>Errors:</li>
+          <ul>
+            <li> (_fun (x) x * 2)3 </li>
+            <li>A call value must be placed within parenthesis after a function expression and will result in the following error: "Invalid input for an expression"</li>
+          </ul>
         </ul>
     </ul>
 </p>
@@ -270,7 +305,11 @@ MSDscript can parse user input and interpret a variety of expressions.
         <li>'test' will run catch tests found within the code to make sure the program is working as intended </li>
     </ul>
   </ul>
-  <b>Note: Command-line programs depend on an input on end of file, so use 'ctrl+d' as opposed to 'return' when finished entering an expression and to begin the program</b>
+  <b>Additional Notes:<b>
+  <ul>
+    <li>Command-line programs depend on an input on end of file, so use 'ctrl+d' as opposed to 'return' when finished entering an expression and to begin the program</li>
+    <li> MSDscript can handle additional whitespace, new lines as well as expressions wrapped in parenthesis. IE "--interp 2      + \n 3 " == "--interp 2+3" </li>
+  </ul>
 </p>
 
 ## API Documentation <a name = "API"></a>
