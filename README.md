@@ -22,6 +22,13 @@
       <li>Call Expressions</li>
     </ul>
     <li><b>How it's meant to be used:</b> MSDscript can be built and ran as a stand alone script. Users may input an expression via the command line which will be parsed and interpretted. MSDscript can also be used as an embedded language.</li>
+    <li> Expression Precedence </li>
+        <ul>
+            <li>Multiplication Expression</li>
+            <li>Addition Expression</li>
+            <li> Equivalence Expression </li>
+            <li> Let Expressions, If/Else Expression, Function Expressions, Call Expressions</li>
+        </ul>
   </ul>
  </p>
  
@@ -38,7 +45,7 @@
 
 ## User Guide: <a name = "user"></a>
 <p>
-MSDscript can parse user input and interpret a variety of expressions. 
+MSDscript can parse user input and interpret a variety of expressions.
 <ul>
       <li>Numerical Expressions</li>
         <ul>
@@ -239,8 +246,9 @@ MSDscript can parse user input and interpret a variety of expressions.
         </ul>
     </ul>
 </p>
-<p>
-  MSDscript can run the following arguments via the command line:
+
+  ### Comandline Arguments:
+  <p>
   <ul>
     <li><b>--help</b>
       <ul>
@@ -305,16 +313,137 @@ MSDscript can parse user input and interpret a variety of expressions.
         <li>'test' will run catch tests found within the code to make sure the program is working as intended </li>
     </ul>
   </ul>
-  <b>Additional Notes:<b>
-  <ul>
-    <li>Command-line programs depend on an input on end of file, so use 'ctrl+d' as opposed to 'return' when finished entering an expression and to begin the program</li>
-    <li> MSDscript can handle additional whitespace, new lines as well as expressions wrapped in parenthesis. IE "--interp 2      + \n 3 " == "--interp 2+3" </li>
-  </ul>
+  <b>Note: Command-line programs depend on an input on end of file, so use 'ctrl+d' as opposed to 'return' when finished entering an expression and to begin the program</b>
 </p>
 
+### MSDscript Grammar
+  ```
+  〈expr〉     = 〈comparg〉
+                  | 〈comparg〉==〈expr〉
+              
+  〈comparg〉  = 〈addend〉
+                  | 〈addend〉+〈comparg〉
+              
+  〈addend〉   = 〈multicand〉
+                  | 〈multicand〉*〈addend〉
+              
+  〈multicand〉= 〈inner〉
+                  | 〈multicand〉(〈expr〉)
+              
+  〈inner〉    = 〈number〉| (〈expr〉) |〈variable〉
+                  | _let〈variable〉=〈expr〉_in〈expr〉
+                  | _true | _false
+                  | _if〈expr〉_then〈expr〉_else〈expr〉
+                  | _fun (〈variable〉)〈expr〉
+  ```
+
 ## API Documentation <a name = "API"></a>
+
 <p>
-  <ul>
-    <li></li>
- </ul>
-</p>
+MSDscript Files
+
+<ul>
+<b>Core</b>
+<li>`cmdline.cpp, cmdline.hpp` - Contains methods necessary for command line arguments for the terminal</li>
+<li>`cont.cpp, cont.hpp` - Contains methods necessary for continuations within step mode interpretation</li>
+<li>`env.cpp, env.hpp` - Contains methods necessary for quick referencing of variables without creating new expressions</li>
+<li>`expr.cpp, expr.hpp` - Contains methods for expressions</li>
+<li>`parse.cpp, parse.hpp` - Contains methods necessary for parsing an input or string</li>
+<li>`step.cpp, step.hpp` - Contains methods necessary for step interpretation which prevents seg faults in large recursive expressions</li>
+<li>`val.cpp, val.hpp` - Contains methods necessary for values</li>
+</ul>
+
+<ul>
+<b>Helper</b>
+<li>`main.cpp` - Runs the commandline code. Can be used for testing with editing the scheme. </li>
+<li>`pointer.h` - Allows for  the switching between shared and regular pointers.</li>
+</ul>
+
+<ul>
+<b>Tests</b>
+<li>`catch.h` - Used to run the tests found through various cpp codes.</li>
+</ul>
+
+<ul>
+<b>Expr Functions</b>
+<li>  `equals(PTR(Expr)a)` </li>
+<ul>
+<li>Returns a boolean to determine if two expressions are equivalent.</li>
+</ul>
+<li> `PTR(Val) interp(PTR(Env) env)`</li>
+<ul>
+<li>Returns a PTR(Val) which represents the interpreted expression</li>
+</ul>
+<li> `void print(std::ostream& output)`</li>
+<ul>
+<li>Returns void. Used to print an expression to an output stream.</li>
+</ul>
+<li> `void pretty_print(std::ostream& output)`</li>
+<ul>
+<li>Returns void. Used to print an expression avoiding unnecessary parenthesis assuming that operators are associating to the right to an output stream.</li>
+</ul>
+<li> `void step_interp()`</li>
+<ul>
+<li>Returns void. Used to interpret recursive expressions without causing a segmentation fault.</li>
+</ul>
+</ul>
+
+<ul>
+<b>Expr Subtypes</b>
+<li> `NumExpr` - Represents numeric expressions</li>
+<li> `AddExpr` - Represents addition expressions</li>
+<li> `MultExpr` - Represents a multiplication expression</li>
+<li> `VarExpr` - Represents a variable expression</li>
+<li> `LetExpr` - Represents a let expression</li>
+<li> `BoolExpr` - Represents a boolean expression</li>
+<li> `IfExpr` - Represents an else/if expression</li>
+<li> `EqExpr` - Represents an equivalence expression</li>
+<li> `FunExpr` - Represents a function expression </li>
+<li> `CallExpr` - Represents a call to a function expression</li>
+</ul>
+
+<ul>
+<b>Val Functions</b>
+<li>`equals(PTR(Val) v)` </li>
+<ul>
+<li>Returns a boolean to determine if two values are equivalent.</li>
+</ul>
+<li>`PTR(Val) add_to(PTR(Val) rhs)`</li>
+<ul>
+<li>Returns a PTR(Val) of the addition result of the calling value to the parameter value.</li>
+</ul>
+<li>`mult_to(PTR(Val) rhs)`</li>
+<ul>
+<li>Returns a PTR(Val) of the multiplication result of the calling value to the parameter value.</li>
+</ul>
+<li>`print(std::ostream& outstream)`</li>
+<ul>
+<li>Returns void. Used to print a value to an output stream.</li>
+</ul>
+<li>`is_true()`</li>
+<ul>
+<li>Returns a boolean whether the calling value is _true.</li>
+</ul>
+</ul>
+
+<ul>
+<b>Val Subtypes</b>
+<li>`NumVal` - Represents a number value</li>
+<li>`BoolVal` - Represents a boolean value</li>
+<li>`FunVal` - Represents a function value</li>
+</ul>
+
+<ul>
+<b>Parsing Expressions</b>
+<br> MSDscript can parse expressions by utilizing the `parse()` function.
+<li> `PTR(Expr) parse(std::istream &in)` takes an input stream and will return `PTR(Expr)` which is a pointer to an expression. This function is used in the command line to parse user input into an expression.</li>
+<li> `PTR(Expr) parse_str(std::istream &in)` takes a string and will return `PTR(Expr)` which is a pointer to an expression.</li>
+</ul>
+
+<ul>
+<b>Interpretting Expressions</b>
+<br> MSDscript can interpret expressions by utilizing the `interp()` function.
+<li> `interp_by_steps(PTR(Expr) e)` takes an expression and returns `PTR(Val)` which is the interpreted value</li>
+</ul>
+
+
